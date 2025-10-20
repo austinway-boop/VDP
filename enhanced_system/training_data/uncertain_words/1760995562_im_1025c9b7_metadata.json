@@ -1,0 +1,36 @@
+{
+  "word_id": "1760995562_im_1025c9b7",
+  "original_word": "i'm",
+  "clean_word": "im",
+  "word_index": 0,
+  "total_words": 7,
+  "full_text": "i'm testing my laughing detection system so",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpnn_2xbvo.wav",
+  "timestamp": 1760995562,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "google",
+    "service_confidence": 0.78902662,
+    "estimated_confidence": 0.6514285714285715,
+    "final_confidence": 0.7339874005714286,
+    "audio_hash": "d3644af3f54a092b72f9de5aae15adb4",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "i'm testing my laughing detection system so",
+        "confidence": 0.78902662
+      }
+    ]
+  },
+  "estimated_position": "Word 1 of 7",
+  "context": {
+    "before": "",
+    "target": "i'm",
+    "after": "testing my",
+    "full_context": "i'm testing my"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

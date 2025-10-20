@@ -113,6 +113,7 @@
                     <span class="legend-item sadness">😢 Sadness</span>
                     <span class="legend-item disgust">🤢 Disgust</span>
                     <span class="legend-item neutral">😐 Neutral/Unknown</span>
+                    <span class="legend-item laughter">😄 Laughter Boost</span>
                 </div>
             </div>
             <div class="emotion-results" id="emotionResults">
@@ -142,6 +143,20 @@
                     <label>Sentiment:</label>
                     <span id="sentimentPolarity">Neutral</span>
                     (<span id="sentimentStrength">50%</span>)
+                </div>
+            </div>
+            
+            <!-- Laughter Analysis Section -->
+            <div class="laughter-analysis" id="laughterAnalysis" style="display:none;">
+                <h4>😄 Laughter Detection</h4>
+                <div class="laughter-summary" id="laughterSummary">
+                    No laughter detected
+                </div>
+                <div class="laughter-timeline" id="laughterTimeline">
+                    <!-- Laughter segments will be shown here -->
+                </div>
+                <div class="laughter-influence" id="laughterInfluence" style="display:none;">
+                    <!-- Laughter influence on emotions will be shown here -->
                 </div>
             </div>
         </div>

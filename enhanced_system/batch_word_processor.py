@@ -4,10 +4,10 @@ Batch Word Processor - Processes ALL words in a phrase simultaneously through De
 """
 
 import json
+import os
 import requests
 import concurrent.futures
 import threading
-import os
 from pathlib import Path
 import time
 from typing import Dict, List, Optional

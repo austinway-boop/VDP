@@ -25,6 +25,14 @@ except ImportError as e:
     print(f"⚠️ Local speech model not available: {e}")
     LOCAL_MODEL_AVAILABLE = False
 
+# Import laughter detector
+try:
+    from laughter_detector import detect_laughter_in_audio, get_laughter_summary
+    LAUGHTER_DETECTION_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ Laughter detection not available: {e}")
+    LAUGHTER_DETECTION_AVAILABLE = False
+
 class EnhancedSpeechAnalyzer:
     def __init__(self, confidence_threshold: float = 0.7):
         # Look for words directory in parent directory (main project root)
@@ -592,6 +600,7 @@ class EnhancedSpeechAnalyzer:
                 "confidence": 0.0,
                 "metadata": metadata,
                 "emotion_analysis": self.get_neutral_emotion_result(""),
+                "laughter_analysis": {"error": "No audio to analyze"},
                 "processing_time": 0,
                 "success": False,
                 "error": metadata.get("error", "Unknown error"),
@@ -608,13 +617,30 @@ class EnhancedSpeechAnalyzer:
             print(f"⚠️ Low confidence ({confidence:.2f} < {self.confidence_threshold}), saving for review...")
             clip_id = self.save_uncertain_clip(audio_file_path, text, confidence, metadata)
         
-        # Step 3: Analyze emotion
+        # Step 3: Detect laughter first (affects emotion analysis)
+        print("Detecting laughter...")
+        laughter_analysis = {}
+        if LAUGHTER_DETECTION_AVAILABLE:
+            try:
+                laughter_analysis = detect_laughter_in_audio(audio_file_path)
+                if laughter_analysis.get('laughter_segments'):
+                    print(f"😄 Laughter detected: {len(laughter_analysis['laughter_segments'])} segments")
+                    print(get_laughter_summary(laughter_analysis))
+                else:
+                    print("😐 No laughter detected")
+            except Exception as e:
+                print(f"⚠️ Laughter detection error: {e}")
+                laughter_analysis = {'error': str(e)}
+        else:
+            laughter_analysis = {'error': 'Laughter detection not available'}
+        
+        # Step 4: Analyze emotion (with laughter influence)
         print("Analyzing emotions...")
         start_time = time.time()
-        emotion_analysis = self.analyze_phrase_emotion(text)
+        emotion_analysis = self.analyze_phrase_emotion(text, laughter_analysis)
         processing_time = time.time() - start_time
         
-        # Step 4: Check for unknown words and save word snippets
+        # Step 5: Check for unknown words and save word snippets
         print("Checking for unknown words...")
         unknown_word_ids = self.save_uncertain_words(audio_file_path, text, emotion_analysis, metadata)
         
@@ -623,6 +649,7 @@ class EnhancedSpeechAnalyzer:
             "confidence": confidence,
             "metadata": metadata,
             "emotion_analysis": emotion_analysis,
+            "laughter_analysis": laughter_analysis,
             "processing_time": processing_time,
             "success": True,
             "error": None,
@@ -634,10 +661,76 @@ class EnhancedSpeechAnalyzer:
         
         return result
     
-    def analyze_phrase_emotion(self, text: str) -> Dict:
-        """Analyze emotion using batch word processing"""
+    def analyze_phrase_emotion(self, text: str, laughter_data: Dict = None) -> Dict:
+        """Analyze emotion using batch word processing with laughter influence"""
         print(f"🔍 Batch analysis of: '{text}'")
-        return process_text_batch(text)
+        emotion_result = process_text_batch(text)
+        
+        # Apply laughter influence to emotion scores
+        if laughter_data and laughter_data.get('laughter_segments'):
+            emotion_result = self._apply_laughter_influence(emotion_result, laughter_data)
+        
+        return emotion_result
+    
+    def _apply_laughter_influence(self, emotion_result: Dict, laughter_data: Dict) -> Dict:
+        """Apply laughter influence to emotion analysis"""
+        try:
+            laughter_percentage = laughter_data.get('laughter_percentage', 0)
+            num_segments = len(laughter_data.get('laughter_segments', []))
+            
+            if laughter_percentage > 0:
+                print(f"😄 Applying laughter influence: {laughter_percentage:.1f}% laughter detected")
+                
+                # Calculate laughter boost factor (0.1 to 0.5 based on amount of laughter)
+                laughter_boost = min(laughter_percentage / 100 * 0.5, 0.5)
+                
+                # Boost joy and positive emotions
+                emotions = emotion_result.get('emotions', {}).copy()
+                
+                # Apply laughter boost to joy
+                original_joy = emotions.get('joy', 0)
+                boosted_joy = min(original_joy + laughter_boost, 1.0)
+                emotions['joy'] = boosted_joy
+                
+                # Slightly boost trust and surprise (common with laughter)
+                emotions['trust'] = min(emotions.get('trust', 0) + laughter_boost * 0.3, 1.0)
+                emotions['surprise'] = min(emotions.get('surprise', 0) + laughter_boost * 0.2, 1.0)
+                
+                # Reduce negative emotions when laughter is present
+                negative_emotions = ['anger', 'fear', 'sadness', 'disgust']
+                reduction_factor = laughter_boost * 0.5
+                
+                for emotion in negative_emotions:
+                    emotions[emotion] = max(emotions.get(emotion, 0) - reduction_factor, 0.0)
+                
+                # Renormalize to ensure probabilities sum to 1.0
+                total = sum(emotions.values())
+                if total > 0:
+                    emotions = {k: v / total for k, v in emotions.items()}
+                
+                # Update the result
+                emotion_result['emotions'] = emotions
+                emotion_result['laughter_influence'] = {
+                    'applied': True,
+                    'boost_factor': laughter_boost,
+                    'original_joy': original_joy,
+                    'boosted_joy': emotions['joy'],
+                    'laughter_percentage': laughter_percentage
+                }
+                
+                # Update overall emotion if joy is now dominant
+                max_emotion = max(emotions, key=emotions.get)
+                if max_emotion != emotion_result.get('overall_emotion'):
+                    print(f"🎭 Overall emotion changed due to laughter: {emotion_result.get('overall_emotion')} → {max_emotion}")
+                    emotion_result['overall_emotion'] = max_emotion
+                
+                print(f"🎭 Laughter boosted joy: {original_joy:.3f} → {emotions['joy']:.3f} (+{laughter_boost:.3f})")
+                
+            return emotion_result
+            
+        except Exception as e:
+            print(f"⚠️ Error applying laughter influence: {e}")
+            return emotion_result
     
     def get_neutral_emotion_result(self, text: str) -> Dict:
         """Return neutral emotion result when no words are found"""

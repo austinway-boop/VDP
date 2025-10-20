@@ -1960,6 +1960,80 @@ class AudioRecorder {
         // Create emotion bars with enhanced scores
         console.log('DEBUG: Creating emotion bars with:', analysis.emotions);
         this.createEmotionBars(analysis.emotions);
+        
+        // Display laughter analysis if available
+        this.displayLaughterAnalysis(result.laughter_analysis, analysis.laughter_influence);
+    }
+
+    displayLaughterAnalysis(laughterData, laughterInfluence) {
+        const laughterSection = document.getElementById('laughterAnalysis');
+        const laughterSummary = document.getElementById('laughterSummary');
+        const laughterTimeline = document.getElementById('laughterTimeline');
+        const laughterInfluenceDiv = document.getElementById('laughterInfluence');
+        
+        if (!laughterSection || !laughterData) {
+            return;
+        }
+        
+        // Check if laughter was detected
+        const segments = laughterData.laughter_segments || [];
+        
+        if (segments.length === 0) {
+            laughterSection.style.display = 'none';
+            return;
+        }
+        
+        // Show laughter section
+        laughterSection.style.display = 'block';
+        
+        // Update summary
+        const totalTime = laughterData.total_laughter_time || 0;
+        const percentage = laughterData.laughter_percentage || 0;
+        const numBursts = segments.length;
+        
+        laughterSummary.innerHTML = `
+            <strong>😄 ${numBursts} laughter burst${numBursts !== 1 ? 's' : ''} detected</strong><br>
+            ⏱️ Total laughter: ${totalTime.toFixed(1)}s (${percentage.toFixed(1)}% of audio)
+        `;
+        
+        // Create timeline visualization in word-analysis style
+        const laughterSegmentsHtml = segments.map((segment, index) => `
+            <span class="laughter-segment" title="Laughter: ${segment.start_time}s-${segment.end_time}s (${Math.round(segment.confidence * 100)}% confidence)">
+                😄 ${segment.start_time}s-${segment.end_time}s
+            </span>
+        `).join('');
+        
+        laughterTimeline.innerHTML = `
+            <strong>Laughter Timeline:</strong>
+            <div style="margin-top: 10px;">
+                ${laughterSegmentsHtml}
+            </div>
+            <div class="laughter-legend">
+                <span class="laughter-legend-item">😄 Laughter Detected</span>
+            </div>
+            <div class="laughter-stats">
+                <span>Total: ${totalTime.toFixed(1)}s</span>
+                <span class="laughter-percentage">${percentage.toFixed(1)}% of audio</span>
+            </div>
+        `;
+        
+        // Show laughter influence on emotions if available
+        if (laughterInfluence && laughterInfluence.applied && laughterInfluenceDiv) {
+            laughterInfluenceDiv.style.display = 'block';
+            const boostAmount = ((laughterInfluence.boosted_joy - laughterInfluence.original_joy) * 100).toFixed(1);
+            laughterInfluenceDiv.innerHTML = `
+                <div style="margin-top: 15px; padding: 10px; background: rgba(255, 193, 7, 0.1); border-radius: 6px; border-left: 3px solid #ffc107;">
+                    <strong>🎭 Emotion Impact:</strong> Laughter boosted joy by ${boostAmount}%
+                    <div style="font-size: 0.9em; color: #6c757d; margin-top: 5px;">
+                        Joy: ${(laughterInfluence.original_joy * 100).toFixed(1)}% → ${(laughterInfluence.boosted_joy * 100).toFixed(1)}%
+                    </div>
+                </div>
+            `;
+        } else if (laughterInfluenceDiv) {
+            laughterInfluenceDiv.style.display = 'none';
+        }
+        
+        console.log('DEBUG: Displayed laughter analysis:', laughterData);
     }
 
     displayWordBreakdown(wordAnalysis) {

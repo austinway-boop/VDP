@@ -62,6 +62,13 @@ CircuitAlg/
 - **Word-by-word analysis** with color coding
 - **Batch text processing** capability
 
+### 😄 Laughter Detection
+- **Automatic laughter detection** in audio clips
+- **Precise timing** of laughter segments
+- **Confidence scoring** for each laughter burst
+- **Visual timeline** showing laughter locations
+- **Integration** with emotion analysis results
+
 ### 🔍 Training System
 - **Uncertain clip detection** and review
 - **Word-level uncertainty** detection and correction
