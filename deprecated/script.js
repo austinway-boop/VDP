@@ -1916,6 +1916,15 @@ class AudioRecorder {
         console.log('DEBUG: transcription:', result.transcription);
         console.log('DEBUG: word_analysis length:', analysis ? (analysis.word_analysis ? analysis.word_analysis.length : 'missing') : 'no analysis');
         
+        // Safety check for emotion analysis
+        if (!analysis) {
+            console.error('ERROR: No emotion analysis data received');
+            this.elements.emotionAnalysis.style.display = 'block';
+            this.elements.transcriptionText.textContent = result.transcription || 'No speech detected';
+            this.elements.wordBreakdown.innerHTML = '<span class="no-words">No emotion analysis available</span>';
+            return;
+        }
+        
         // Show emotion analysis section
         this.elements.emotionAnalysis.style.display = 'block';
         
@@ -1930,6 +1939,7 @@ class AudioRecorder {
         this.displayConfidenceInfo(result.confidence, result.needs_review);
         
         // Display word-by-word analysis with color coding
+        console.log('DEBUG: About to display word breakdown with:', analysis.word_analysis);
         this.displayWordBreakdown(analysis.word_analysis || []);
         
         // Update primary emotion - use the highest probability emotion for accuracy
@@ -1970,7 +1980,11 @@ class AudioRecorder {
         this.displayLaughterAnalysis(result.laughter_analysis, analysis.laughter_influence);
         
         // Display audio waveform with laughter highlighting
-        this.displayAudioWaveform(this.currentAudioBlob, result.laughter_analysis);
+        try {
+            this.displayAudioWaveform(this.currentAudioBlob, result.laughter_analysis);
+        } catch (error) {
+            console.error('Error displaying waveform:', error);
+        }
     }
 
     displayLaughterAnalysis(laughterData, laughterInfluence) {
@@ -2151,13 +2165,22 @@ class AudioRecorder {
         ctx.stroke();
         
         // Highlight laughter segments
-        if (laughterData && laughterData.laughter_segments) {
+        if (laughterData && laughterData.laughter_segments && Array.isArray(laughterData.laughter_segments)) {
             this.drawLaughterHighlights(ctx, laughterData.laughter_segments, width, height, duration);
         }
     }
 
     drawLaughterHighlights(ctx, laughterSegments, width, height, duration) {
+        if (!Array.isArray(laughterSegments) || laughterSegments.length === 0) {
+            return;
+        }
+        
         laughterSegments.forEach(segment => {
+            if (!segment || typeof segment.start_time !== 'number' || typeof segment.end_time !== 'number') {
+                console.warn('Invalid laughter segment:', segment);
+                return;
+            }
+            
             const startX = (segment.start_time / duration) * width;
             const endX = (segment.end_time / duration) * width;
             const segmentWidth = endX - startX;
@@ -2248,7 +2271,8 @@ class AudioRecorder {
         
         this.elements.wordBreakdown.innerHTML = '';
         
-        if (!wordAnalysis || wordAnalysis.length === 0) {
+        // Add safety check for undefined wordAnalysis
+        if (!wordAnalysis || !Array.isArray(wordAnalysis) || wordAnalysis.length === 0) {
             this.elements.wordBreakdown.innerHTML = '<span class="no-words">No words to analyze (Debug: wordAnalysis=' + (wordAnalysis ? wordAnalysis.length : 'null') + ')</span>';
             console.log('DEBUG: wordAnalysis is empty or null:', wordAnalysis);
             return;
