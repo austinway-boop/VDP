@@ -448,40 +448,38 @@ Rules:
             dominant_emotion = "neutral"
             confidence = 0.125
         
-        # Add emotion word counts to the response (only confident words)
+        # Add emotion word counts and prepare word analysis for display
         emotion_word_counts = {}
-        confident_word_analysis = []
+        display_word_analysis = []
         
         if word_emotions:
             emotion_word_counts = {"joy": 0, "trust": 0, "anticipation": 0, "surprise": 0, "anger": 0, "fear": 0, "sadness": 0, "disgust": 0}
             
-            # Filter word analysis to only show confident words
+            # Include ALL words in display analysis (for UI word breakdown)
             for word_data in word_analysis:
                 if word_data.get('found', False):
-                    # Check if this word has confident emotion prediction
+                    # Count confident words for statistics only
                     word_confidence = word_data.get('confidence', 0)
-                    if word_confidence > 0.25:  # Same threshold as above
-                        confident_word_analysis.append(word_data)
-                        # Count for statistics
+                    if word_confidence > 0.25:  # Statistics threshold
                         emotion_word_counts[word_data['emotion']] += 1
-                    else:
-                        # Mark as filtered in the analysis
-                        filtered_word = word_data.copy()
-                        filtered_word['emotion'] = 'filtered'
-                        filtered_word['confidence'] = word_confidence
-                        confident_word_analysis.append(filtered_word)
+                    
+                    # But include ALL found words in display
+                    display_word_analysis.append(word_data)
                 else:
                     # Keep unfound words as-is
-                    confident_word_analysis.append(word_data)
+                    display_word_analysis.append(word_data)
+        else:
+            # No emotions found, but still show all words as neutral for display
+            display_word_analysis = word_analysis
         
         return {
             "text": text,
             "word_count": len(original_words),
             "analyzed_words": len(found_words),
-            "confident_words": len([w for w in confident_word_analysis if w.get('emotion') not in ['neutral', 'filtered']]),
+            "confident_words": len([w for w in display_word_analysis if w.get('emotion') not in ['neutral', 'filtered']]),
             "coverage": len(found_words) / len(original_words) if original_words else 0,
             "found_words": found_words,
-            "word_analysis": confident_word_analysis,  # Only confident words
+            "word_analysis": display_word_analysis,  # All words for display
             "emotions": emotions,
             "emotion_word_counts": emotion_word_counts,  # Only confident word counts
             "vad": vad,

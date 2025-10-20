@@ -1,0 +1,36 @@
+{
+  "word_id": "1760995997_im_9d1133d3",
+  "original_word": "i'm",
+  "clean_word": "im",
+  "word_index": 0,
+  "total_words": 16,
+  "full_text": "i'm testing my voice speech analysis of emotions isn't that really cool i've added in laughing",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmp_ipblkla.wav",
+  "timestamp": 1760995997,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "google",
+    "service_confidence": 0.82559091,
+    "estimated_confidence": 0.7650000000000001,
+    "final_confidence": 0.801354546,
+    "audio_hash": "6a42566f8b20b30eb0fa6c286f2dc2b1",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "i'm testing my voice speech analysis of emotions isn't that really cool i've added in laughing",
+        "confidence": 0.82559091
+      }
+    ]
+  },
+  "estimated_position": "Word 1 of 16",
+  "context": {
+    "before": "",
+    "target": "i'm",
+    "after": "testing my",
+    "full_context": "i'm testing my"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

@@ -83,8 +83,8 @@ def analyze_text():
                 "error": "No text provided"
             }), 400
         
-        # Analyze emotion only
-        emotion_analysis = analyzer.analyze_phrase_emotion(text)
+        # Analyze emotion only (no laughter data for text input)
+        emotion_analysis = analyzer.analyze_phrase_emotion(text, None)
         
         return jsonify({
             "success": True,
