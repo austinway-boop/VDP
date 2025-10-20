@@ -1,0 +1,22 @@
+{
+  "clip_id": "1760484361_8750a7c4",
+  "original_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpgkd2iyl5.wav",
+  "transcribed_text": "what can i say something wow",
+  "confidence": 0.6709758633333333,
+  "timestamp": 1760484361,
+  "status": "pending_review",
+  "metadata": {
+    "service": "google",
+    "service_confidence": 0.72273755,
+    "estimated_confidence": 0.5933333333333333,
+    "final_confidence": 0.6709758633333333,
+    "audio_hash": "8750a7c43532bee95d2c7ba9efac24f6",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "what can i say something wow",
+        "confidence": 0.72273755
+      }
+    ]
+  }
+}

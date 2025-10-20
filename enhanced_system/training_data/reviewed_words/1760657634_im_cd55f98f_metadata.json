@@ -1,0 +1,39 @@
+{
+  "word_id": "1760657634_im_cd55f98f",
+  "original_word": "i'm",
+  "clean_word": "im",
+  "word_index": 1,
+  "total_words": 9,
+  "full_text": "hello i'm having an amazing day wait wait wait",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmp9n7men0b.wav",
+  "timestamp": 1760657634,
+  "status": "word_corrected",
+  "audio_metadata": {
+    "service": "google",
+    "service_confidence": 0.66815221,
+    "estimated_confidence": 0.7422222222222223,
+    "final_confidence": 0.697780214888889,
+    "audio_hash": "196f42c52a84682a7e8b958c58b5d094",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "hello i'm having an amazing day wait wait wait",
+        "confidence": 0.66815221
+      }
+    ]
+  },
+  "estimated_position": "Word 2 of 9",
+  "context": {
+    "before": "hello",
+    "target": "i'm",
+    "after": "having an",
+    "full_context": "hello i'm having an"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty",
+  "corrected_word": "i'm",
+  "corrected_by": "admin",
+  "correction_timestamp": 1760720563
+}

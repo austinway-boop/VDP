@@ -1,0 +1,22 @@
+{
+  "clip_id": "1760550803_a4fb57af",
+  "original_path": "training_data/uncertain_clips/1760484420_a4fb57af.wav",
+  "transcribed_text": "scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo",
+  "confidence": 0.528481464,
+  "timestamp": 1760550803,
+  "status": "pending_review",
+  "metadata": {
+    "service": "google",
+    "service_confidence": 0.52080244,
+    "estimated_confidence": 0.54,
+    "final_confidence": 0.528481464,
+    "audio_hash": "a4fb57af040ce1d06119b68440e2b538",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo",
+        "confidence": 0.52080244
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "clip_id": "1760487255_b1b106a8",
+  "original_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpuglvljcb.wav",
+  "transcribed_text": "that's true but still scary",
+  "confidence": 0.659876044,
+  "timestamp": 1760487255,
+  "status": "pending_review",
+  "metadata": {
+    "service": "google",
+    "service_confidence": 0.75312674,
+    "estimated_confidence": 0.52,
+    "final_confidence": 0.659876044,
+    "audio_hash": "b1b106a8e34d693a0516c6721673c4a0",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "that's true but still scary",
+        "confidence": 0.75312674
+      }
+    ]
+  }
+}

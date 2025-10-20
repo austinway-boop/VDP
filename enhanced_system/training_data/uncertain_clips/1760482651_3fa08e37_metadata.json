@@ -1,0 +1,22 @@
+{
+  "clip_id": "1760482651_3fa08e37",
+  "original_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmp9g94zhq1.wav",
+  "transcribed_text": "i'm testing my program right now didn't go to work for tomorrow",
+  "confidence": 0.621134616,
+  "timestamp": 1760482651,
+  "status": "pending_review",
+  "metadata": {
+    "service": "google",
+    "service_confidence": 0.67522436,
+    "estimated_confidence": 0.54,
+    "final_confidence": 0.621134616,
+    "audio_hash": "3fa08e3716a2471bcd2589da9ae55aab",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "i'm testing my program right now didn't go to work for tomorrow",
+        "confidence": 0.67522436
+      }
+    ]
+  }
+}

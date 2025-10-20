@@ -1,0 +1,36 @@
+{
+  "word_id": "1760550803_scoobydoo_4d60b12c",
+  "original_word": "scooby-doo",
+  "clean_word": "scoobydoo",
+  "word_index": 11,
+  "total_words": 12,
+  "full_text": "scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo",
+  "original_audio_path": "training_data/uncertain_clips/1760484420_a4fb57af.wav",
+  "timestamp": 1760550803,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "google",
+    "service_confidence": 0.52080244,
+    "estimated_confidence": 0.54,
+    "final_confidence": 0.528481464,
+    "audio_hash": "a4fb57af040ce1d06119b68440e2b538",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo scooby-doo",
+        "confidence": 0.52080244
+      }
+    ]
+  },
+  "estimated_position": "Word 12 of 12",
+  "context": {
+    "before": "scooby-doo scooby-doo",
+    "target": "scooby-doo",
+    "after": "",
+    "full_context": "scooby-doo scooby-doo scooby-doo"
+  },
+  "uncertainty_reasons": [
+    "repeated"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

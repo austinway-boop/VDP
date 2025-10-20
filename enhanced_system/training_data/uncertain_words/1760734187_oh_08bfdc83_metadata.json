@@ -1,0 +1,36 @@
+{
+  "word_id": "1760734187_oh_08bfdc83",
+  "original_word": "oh",
+  "clean_word": "oh",
+  "word_index": 16,
+  "total_words": 20,
+  "full_text": "oh my gosh i'm so excited for the weekend it's going to be so much fun oh more stuff okay",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpjmibho7f.wav",
+  "timestamp": 1760734187,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "google",
+    "service_confidence": 0.95800674,
+    "estimated_confidence": 0.8,
+    "final_confidence": 0.894804044,
+    "audio_hash": "d8f71cf7e4f3452950eed82a8e46c7e3",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "oh my gosh i'm so excited for the weekend it's going to be so much fun oh more stuff okay",
+        "confidence": 0.95800674
+      }
+    ]
+  },
+  "estimated_position": "Word 17 of 20",
+  "context": {
+    "before": "much fun",
+    "target": "oh",
+    "after": "more stuff",
+    "full_context": "much fun oh more stuff"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

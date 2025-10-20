@@ -1,0 +1,39 @@
+{
+  "word_id": "1760550923_if_7516a4f7",
+  "original_word": "if",
+  "clean_word": "if",
+  "word_index": 26,
+  "total_words": 33,
+  "full_text": "oh my gosh this is so exciting i just finished my program and i'm really hoping it works if it does that's going to be amazing if not well you know that's not",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpjkudog6g.wav",
+  "timestamp": 1760550923,
+  "status": "word_corrected",
+  "audio_metadata": {
+    "service": "google",
+    "service_confidence": 0.92415249,
+    "estimated_confidence": 0.843030303030303,
+    "final_confidence": 0.8917036152121212,
+    "audio_hash": "93b93c3df23514cb35686f60a2cfe90d",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "oh my gosh this is so exciting i just finished my program and i'm really hoping it works if it does that's going to be amazing if not well you know that's not",
+        "confidence": 0.92415249
+      }
+    ]
+  },
+  "estimated_position": "Word 27 of 33",
+  "context": {
+    "before": "be amazing",
+    "target": "if",
+    "after": "not well",
+    "full_context": "be amazing if not well"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty",
+  "corrected_word": "if",
+  "corrected_by": "admin",
+  "correction_timestamp": 1760551756
+}

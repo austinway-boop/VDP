@@ -1,0 +1,36 @@
+{
+  "word_id": "1760720469_im_54e4ab31",
+  "original_word": "i'm",
+  "clean_word": "im",
+  "word_index": 24,
+  "total_words": 38,
+  "full_text": "i am so excited to see this program work and in action so it's super it's going to be i'm so i just like i'm really hoping it works it's the first time since i haven't tested it",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpcfaln7i4.wav",
+  "timestamp": 1760720469,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "google",
+    "service_confidence": 0.90161896,
+    "estimated_confidence": 0.8031578947368421,
+    "final_confidence": 0.8622345338947368,
+    "audio_hash": "13ac5032908c8bc8c1adaf3470921ca2",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "i am so excited to see this program work and in action so it's super it's going to be i'm so i just like i'm really hoping it works it's the first time since i haven't tested it",
+        "confidence": 0.90161896
+      }
+    ]
+  },
+  "estimated_position": "Word 25 of 38",
+  "context": {
+    "before": "just like",
+    "target": "i'm",
+    "after": "really hoping",
+    "full_context": "just like i'm really hoping"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

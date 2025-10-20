@@ -1,0 +1,25 @@
+{
+  "clip_id": "1760657623_196f42c5",
+  "original_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmp9n7men0b.wav",
+  "transcribed_text": "hello i'm having an amazing day wait wait wait",
+  "confidence": 0.697780214888889,
+  "timestamp": 1760657623,
+  "status": "corrected",
+  "metadata": {
+    "service": "google",
+    "service_confidence": 0.66815221,
+    "estimated_confidence": 0.7422222222222223,
+    "final_confidence": 0.697780214888889,
+    "audio_hash": "196f42c52a84682a7e8b958c58b5d094",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "hello i'm having an amazing day wait wait wait",
+        "confidence": 0.66815221
+      }
+    ]
+  },
+  "corrected_text": "hello i'm having an amazing day wait wait wait",
+  "corrected_by": "admin",
+  "correction_timestamp": 1760720567
+}

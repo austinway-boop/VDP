@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Emotion Processor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="word-analysis-app" id="wordAnalysisApp">
+        <h1>Word Emotion Processor</h1>
+        
+        <div class="deepseek-status" id="deepseekStatus">
+            <div class="status-header">
+                <h3>🚀 DeepSeek API Status</h3>
+                <div class="status-indicator" id="deepseekIndicator">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span class="status-text" id="statusText">Connected</span>
+                </div>
+            </div>
+            <div class="deepseek-info" id="deepseekInfo">
+                Model: deepseek-chat | Fast & Cheap API | Parallel Processing Enabled
+            </div>
+        </div>
+        
+        <div class="analysis-stats">
+            <div class="stat-box">
+                <div class="stat-number" id="totalWords">0</div>
+                <div class="stat-label">Total Words</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="processedWords">0</div>
+                <div class="stat-label">Processed</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="remainingWords">0</div>
+                <div class="stat-label">Remaining</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="completionPercent">0%</div>
+                <div class="stat-label">Complete</div>
+            </div>
+        </div>
+
+        <div class="speed-stats">
+            <div class="stat-box">
+                <div class="stat-number" id="currentSpeed">0</div>
+                <div class="stat-label">Words/Hour (Session)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="instantSpeed">0</div>
+                <div class="stat-label">Words/Hour (Recent)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="avgTime">0s</div>
+                <div class="stat-label">Avg Time/Word</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="sessionProcessed">0</div>
+                <div class="stat-label">Session Count</div>
+            </div>
+        </div>
+
+        <div class="eta-display">
+            <div class="eta-box primary">
+                <div class="eta-number" id="estimatedCompletion">--</div>
+                <div class="eta-label">🎯 Est. Completion Time (Recent Performance)</div>
+                <div class="eta-subtitle" id="recentRate">Based on current processing speed</div>
+            </div>
+            <div class="eta-box secondary">
+                <div class="eta-number" id="conservativeCompletion">--</div>
+                <div class="eta-label">📊 Conservative Estimate (Overall Average)</div>
+                <div class="eta-subtitle" id="overallRate">Based on session average</div>
+            </div>
+            <div class="eta-box live">
+                <div class="eta-number" id="liveCompletion">--</div>
+                <div class="eta-label">⚡ Live Prediction</div>
+                <div class="eta-subtitle" id="liveRate">Updates every second</div>
+            </div>
+        </div>
+
+        <div class="system-performance" id="systemPerformance">
+            <h3>💻 Computer Performance</h3>
+            <div class="perf-stats">
+                <div class="perf-stat">
+                    <div class="perf-label">CPU Usage:</div>
+                    <div class="perf-value" id="cpuUsage">0%</div>
+                </div>
+                <div class="perf-stat">
+                    <div class="perf-label">Memory:</div>
+                    <div class="perf-value" id="memoryUsage">0%</div>
+                </div>
+                <div class="perf-stat">
+                    <div class="perf-label">Available RAM:</div>
+                    <div class="perf-value" id="availableMemory">0 GB</div>
+                </div>
+                <div class="perf-stat">
+                    <div class="perf-label">Session Duration:</div>
+                    <div class="perf-value" id="sessionDuration">0m</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="analysis-controls">
+            <button id="processSingleBtn" class="analysis-btn single">Process 1 Word</button>
+            <button id="process500Btn" class="analysis-btn fivehundred">🚀 Process 500 Words</button>
+            <button id="process1000Btn" class="analysis-btn thousand">Process 1000 Words</button>
+            <button id="processExtremeBtn" class="analysis-btn extreme">🔥 EXTREME 1000 (1000 concurrent!)</button>
+            <button id="processBatchBtn" class="analysis-btn batch">Process Continuously</button>
+            <button id="processAllBtn" class="analysis-btn all">Process All Remaining</button>
+            <button id="stopProcessingBtn" class="analysis-btn stop" disabled>Stop Processing</button>
+        </div>
+
+        <div class="current-word-display" id="currentWordDisplay">
+            <div class="current-word-label">Current Words:</div>
+            <div class="current-word" id="currentWord">-</div>
+        </div>
+
+        <div class="processing-log" id="processingLog">
+            <h3>Detailed Processing Log</h3>
+            <div class="log-content" id="logContent">
+                Ready to process words using local AI...
+                
+🔍 Console output will appear here during processing:
+- Word being processed
+- AI response times  
+- Analysis previews
+- Speed calculations
+- File save confirmations
+            </div>
+        </div>
+
+        <div class="error-status" id="errorStatus">
+            <div class="error-count">Consecutive Errors: <span id="errorCount">0</span></div>
+        </div>
+    </div>
+
+    <script>
+        class WordProcessorInterface {
+            constructor() {
+                this.isProcessing = false;
+                this.stats = {};
+                this.initializeElements();
+                this.attachEventListeners();
+                this.loadInitialStats();
+                
+                // Real-time updates with adaptive intervals
+                this.startRealTimeUpdates();
+            }
+            
+            initializeElements() {
+                this.totalWordsEl = document.getElementById('totalWords');
+                this.processedWordsEl = document.getElementById('processedWords');
+                this.remainingWordsEl = document.getElementById('remainingWords');
+                this.completionPercentEl = document.getElementById('completionPercent');
+                this.currentSpeedEl = document.getElementById('currentSpeed');
+                this.instantSpeedEl = document.getElementById('instantSpeed');
+                this.avgTimeEl = document.getElementById('avgTime');
+                this.estimatedCompletionEl = document.getElementById('estimatedCompletion');
+                this.conservativeCompletionEl = document.getElementById('conservativeCompletion');
+                this.liveCompletionEl = document.getElementById('liveCompletion');
+                this.sessionProcessedEl = document.getElementById('sessionProcessed');
+                
+                // System performance elements
+                this.cpuUsageEl = document.getElementById('cpuUsage');
+                this.memoryUsageEl = document.getElementById('memoryUsage');
+                this.availableMemoryEl = document.getElementById('availableMemory');
+                this.sessionDurationEl = document.getElementById('sessionDuration');
+                this.progressFillEl = document.getElementById('progressFill');
+                this.processSingleBtn = document.getElementById('processSingleBtn');
+                this.process500Btn = document.getElementById('process500Btn');
+                this.process1000Btn = document.getElementById('process1000Btn');
+                this.processExtremeBtn = document.getElementById('processExtremeBtn');
+                this.processBatchBtn = document.getElementById('processBatchBtn');
+                this.processAllBtn = document.getElementById('processAllBtn');
+                this.stopProcessingBtn = document.getElementById('stopProcessingBtn');
+                this.currentWordEl = document.getElementById('currentWord');
+                this.logContentEl = document.getElementById('logContent');
+                this.errorCountEl = document.getElementById('errorCount');
+            }
+            
+            attachEventListeners() {
+                this.processSingleBtn.addEventListener('click', () => this.processSingle());
+                this.process500Btn.addEventListener('click', () => this.process500());
+                this.process1000Btn.addEventListener('click', () => this.process1000());
+                this.processExtremeBtn.addEventListener('click', () => this.processExtreme());
+                this.processBatchBtn.addEventListener('click', () => this.processBatch());
+                this.processAllBtn.addEventListener('click', () => this.processAll());
+                this.stopProcessingBtn.addEventListener('click', () => this.stopProcessing());
+            }
+            
+            async loadInitialStats() {
+                await this.loadStats();
+                this.addLogEntry('System ready. Click a button to start processing.', 'info');
+            }
+            
+            startRealTimeUpdates() {
+                // Fast updates during processing (1 second), slower when idle (3 seconds)
+                this.updateStats();
+                
+                setInterval(() => {
+                    this.updateStats();
+                }, this.isProcessing ? 1000 : 3000);
+            }
+            
+            async updateStats() {
+                await this.loadStats();
+            }
+            
+            async loadStats() {
+                try {
+                    const response = await fetch('/api/stats');
+                    if (response.ok) {
+                        const newStats = await response.json();
+                        this.handleStatsUpdate(newStats);
+                    }
+                } catch (error) {
+                    console.log('Stats error:', error);
+                }
+            }
+            
+            handleStatsUpdate(newStats) {
+                // Check for significant changes
+                const oldProcessed = this.stats.processedWords || 0;
+                const oldSession = this.stats.sessionProcessed || 0;
+                
+                this.stats = newStats;
+                this.updateStatsDisplay();
+                
+                // Handle real-time data and warnings
+                if (newStats.realTimeData) {
+                    this.handleRealTimeData(newStats.realTimeData);
+                }
+                
+                // Show progress updates
+                if (newStats.processedWords > oldProcessed) {
+                    this.flashElement(this.processedWordsEl, '#28a745');
+                }
+                if (newStats.sessionProcessed > oldSession) {
+                    this.flashElement(this.sessionProcessedEl, '#007bff');
+                }
+            }
+            
+            handleRealTimeData(realTimeData) {
+                // Handle resource warnings
+                if (realTimeData.resourceWarnings && realTimeData.resourceWarnings.length > 0) {
+                    realTimeData.resourceWarnings.forEach(warning => {
+                        const level = warning.level === 'critical' ? 'error' : 'warning';
+                        const icon = warning.level === 'critical' ? '🚨' : '⚠️';
+                        this.addLogEntry(`${icon} ${warning.message}`, level);
+                    });
+                }
+                
+                // Show auto-throttling status
+                if (realTimeData.autoThrottling) {
+                    this.addLogEntry('🛡️ Auto-throttling activated due to high resource usage', 'warning');
+                }
+            }
+            
+            updateStatsDisplay() {
+                // Check if values changed for visual feedback
+                const oldProcessed = parseInt(this.processedWordsEl.textContent.replace(/,/g, '')) || 0;
+                const oldSession = parseInt(this.sessionProcessedEl.textContent) || 0;
+                
+                this.totalWordsEl.textContent = this.stats.totalWords.toLocaleString();
+                this.processedWordsEl.textContent = this.stats.processedWords.toLocaleString();
+                this.remainingWordsEl.textContent = this.stats.remainingWords.toLocaleString();
+                this.sessionProcessedEl.textContent = this.stats.sessionProcessed;
+                
+                // Visual feedback for updates
+                if (this.stats.processedWords > oldProcessed) {
+                    this.flashElement(this.processedWordsEl, '#28a745');
+                    this.addLogEntry(`📈 Progress update: ${this.stats.processedWords} total processed`, 'success');
+                }
+                
+                if (this.stats.sessionProcessed > oldSession) {
+                    this.flashElement(this.sessionProcessedEl, '#007bff');
+                }
+                
+                const percentage = this.stats.totalWords > 0 
+                    ? ((this.stats.processedWords / this.stats.totalWords) * 100).toFixed(1)
+                    : 0;
+                this.completionPercentEl.textContent = `${percentage}%`;
+                this.progressFillEl.style.width = `${percentage}%`;
+                
+                this.errorCountEl.textContent = this.stats.consecutiveErrors;
+                
+                // Update current words with visual indicator
+                if (this.stats.currentWords && this.stats.currentWords.length > 0) {
+                    this.currentWordEl.textContent = this.stats.currentWords.join(', ');
+                    this.currentWordEl.style.color = '#007bff';
+                    this.currentWordEl.style.fontWeight = 'bold';
+                } else {
+                    this.currentWordEl.textContent = '-';
+                    this.currentWordEl.style.color = '#6c757d';
+                    this.currentWordEl.style.fontWeight = 'normal';
+                }
+                
+                // Enhanced performance stats with real-time ETA
+                if (this.stats.performance) {
+                    const perf = this.stats.performance;
+                    const sessionSpeed = Math.round(perf.session_speed_wph || 0);
+                    const instantSpeed = Math.round(perf.instant_speed_wph || 0);
+                    const avgTime = (perf.recent_avg_time || perf.avg_processing_time || 0).toFixed(1);
+                    
+                    // Update speed displays
+                    this.currentSpeedEl.textContent = sessionSpeed;
+                    this.instantSpeedEl.textContent = instantSpeed;
+                    this.avgTimeEl.textContent = `${avgTime}s`;
+                    
+                    // Real-time ETA updates with visual emphasis
+                    const recentETA = perf.eta_formatted || this.formatTime(perf.estimated_completion_time || 0);
+                    const conservativeETA = perf.eta_conservative || this.formatTime(perf.estimated_completion_time_overall || 0);
+                    
+                    // Update ETA displays with animation on change
+                    if (this.estimatedCompletionEl.textContent !== recentETA) {
+                        this.estimatedCompletionEl.textContent = recentETA;
+                        this.flashElement(this.estimatedCompletionEl, '#007bff');
+                    }
+                    
+                    if (this.conservativeCompletionEl.textContent !== conservativeETA) {
+                        this.conservativeCompletionEl.textContent = conservativeETA;
+                        this.flashElement(this.conservativeCompletionEl, '#6c757d');
+                    }
+                    
+                    // Live ETA calculation based on most recent performance
+                    const liveETA = this.calculateLiveETA(instantSpeed);
+                    if (this.liveCompletionEl.textContent !== liveETA) {
+                        this.liveCompletionEl.textContent = liveETA;
+                        this.flashElement(this.liveCompletionEl, '#17a2b8');
+                    }
+                    
+                    // Color-coded speed indicators
+                    this.updateSpeedColors(this.currentSpeedEl, sessionSpeed);
+                    this.updateSpeedColors(this.instantSpeedEl, instantSpeed);
+                    
+                    // Show processing stats in log
+                    if (perf.processing_times_count > 0) {
+                        const timesCount = perf.processing_times_count;
+                        if (timesCount !== this.lastTimesCount) {
+                            this.addLogEntry(`📊 Performance: ${instantSpeed} words/hour (recent) | ETA: ${recentETA}`, 'success');
+                            this.lastTimesCount = timesCount;
+                        }
+                    }
+                }
+                
+                // Update system performance
+                if (this.stats.systemPerformance) {
+                    const sys = this.stats.systemPerformance;
+                    this.cpuUsageEl.textContent = `${sys.cpu_percent?.toFixed(1) || 0}%`;
+                    this.memoryUsageEl.textContent = `${sys.memory_percent?.toFixed(1) || 0}%`;
+                    this.availableMemoryEl.textContent = `${sys.available_memory_gb?.toFixed(1) || 0} GB`;
+                    
+                    // Color code CPU usage
+                    if (sys.cpu_percent > 80) {
+                        this.cpuUsageEl.style.color = '#dc3545';
+                    } else if (sys.cpu_percent > 50) {
+                        this.cpuUsageEl.style.color = '#ffc107';
+                    } else {
+                        this.cpuUsageEl.style.color = '#28a745';
+                    }
+                }
+                
+                // Update session data
+                if (this.stats.sessionData) {
+                    const session = this.stats.sessionData;
+                    this.sessionDurationEl.textContent = this.formatTime(session.duration);
+                    
+                    // Show recent words in log
+                    if (session.recent_words && session.recent_words.length > 0) {
+                        const recentWordsText = session.recent_words.join(', ');
+                        // Only log if different from last time
+                        if (this.lastRecentWords !== recentWordsText) {
+                            this.addLogEntry(`📝 Recent words: ${recentWordsText}`, 'info');
+                            this.lastRecentWords = recentWordsText;
+                        }
+                    }
+                }
+            }
+            
+            flashElement(element, color) {
+                const originalColor = element.style.color;
+                element.style.color = color;
+                element.style.transition = 'color 0.3s ease';
+                setTimeout(() => {
+                    element.style.color = originalColor;
+                }, 1000);
+            }
+            
+            updateSpeedColors(element, speed) {
+                // Color-coded speed indicator
+                if (speed > 100) {
+                    element.style.color = '#28a745'; // Green - Fast
+                } else if (speed > 50) {
+                    element.style.color = '#17a2b8'; // Blue - Medium
+                } else if (speed > 20) {
+                    element.style.color = '#ffc107'; // Yellow - Slow
+                } else if (speed > 0) {
+                    element.style.color = '#fd7e14'; // Orange - Very slow
+                } else {
+                    element.style.color = '#6c757d'; // Gray - Stopped
+                }
+            }
+            
+            calculateLiveETA(currentSpeed) {
+                if (!this.stats.remainingWords) {
+                    return '--';
+                }
+                
+                const remainingWords = this.stats.remainingWords;
+                
+                // If we have current speed, use it
+                if (currentSpeed && currentSpeed > 0) {
+                    const hoursRemaining = remainingWords / currentSpeed;
+                    const secondsRemaining = hoursRemaining * 3600;
+                    return this.formatTime(secondsRemaining);
+                }
+                
+                // Fallback: use average processing time if available
+                if (this.stats.performance && this.stats.performance.recent_avg_time > 0) {
+                    const avgTimePerWord = this.stats.performance.recent_avg_time;
+                    const secondsRemaining = remainingWords * avgTimePerWord;
+                    return this.formatTime(secondsRemaining);
+                }
+                
+                // Last fallback: use overall average
+                if (this.stats.performance && this.stats.performance.avg_processing_time > 0) {
+                    const avgTimePerWord = this.stats.performance.avg_processing_time;
+                    const secondsRemaining = remainingWords * avgTimePerWord;
+                    return this.formatTime(secondsRemaining);
+                }
+                
+                return '--';
+            }
+
+            formatTime(seconds) {
+                if (!seconds || seconds < 0) return '--';
+                
+                if (seconds < 60) return `${Math.round(seconds)}s`;
+                if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+                if (seconds < 86400) return `${Math.round(seconds / 3600)}h`;
+                return `${Math.round(seconds / 86400)}d`;
+            }
+            
+            setProcessingState(isProcessing, mode = null) {
+                this.isProcessing = isProcessing;
+                this.processSingleBtn.disabled = isProcessing;
+                this.process500Btn.disabled = isProcessing;
+                this.process1000Btn.disabled = isProcessing;
+                this.processExtremeBtn.disabled = isProcessing;
+                this.processBatchBtn.disabled = isProcessing;
+                this.processAllBtn.disabled = isProcessing;
+                this.stopProcessingBtn.disabled = !isProcessing;
+                
+                if (isProcessing) {
+                    this.addLogEntry(`Started ${mode} processing...`, 'info');
+                } else {
+                    this.addLogEntry('Processing stopped.', 'info');
+                    this.currentWordEl.textContent = '-';
+                }
+            }
+            
+            addLogEntry(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${message}\n`;
+                
+                this.logContentEl.textContent += logEntry;
+                this.logContentEl.scrollTop = this.logContentEl.scrollHeight;
+                
+                const lines = this.logContentEl.textContent.split('\n');
+                if (lines.length > 100) {
+                    this.logContentEl.textContent = lines.slice(-80).join('\n');
+                }
+            }
+            
+            async processSingle() {
+                this.setProcessingState(true, 'single word');
+                try {
+                    const response = await this.runPythonCommand('single');
+                    this.handleProcessingResponse(response);
+                } catch (error) {
+                    this.addLogEntry(`Error: ${error.message}`, 'error');
+                } finally {
+                    this.setProcessingState(false);
+                    await this.loadStats();
+                }
+            }
+            
+            async process500() {
+                this.setProcessingState(true, '500 words');
+                
+                this.addLogEntry('🚀 Starting to process 500 words with DeepSeek API...', 'info');
+                this.addLogEntry('⚡ Using 50 concurrent threads for optimized processing', 'info');
+                
+                try {
+                    const response = await this.runPythonCommand('500');
+                    this.handleProcessingResponse(response);
+                } catch (error) {
+                    this.addLogEntry(`❌ Error processing 500 words: ${error.message}`, 'error');
+                } finally {
+                    this.setProcessingState(false);
+                    await this.loadStats();
+                    this.addLogEntry('✅ 500 word batch completed', 'success');
+                }
+            }
+
+            async process1000() {
+                this.setProcessingState(true, '1000 words');
+                
+                this.addLogEntry('🚀 Starting to process 1000 words with DeepSeek API...', 'info');
+                this.addLogEntry('⚡ Using 100 concurrent threads for high speed processing', 'info');
+                
+                try {
+                    const response = await this.runPythonCommand('1000');
+                    this.handleProcessingResponse(response);
+                } catch (error) {
+                    this.addLogEntry(`❌ Error processing 1000 words: ${error.message}`, 'error');
+                } finally {
+                    this.setProcessingState(false);
+                    await this.loadStats();
+                    this.addLogEntry('✅ 1000 word batch completed', 'success');
+                }
+            }
+            
+            async processExtreme() {
+                this.setProcessingState(true, 'EXTREME 1000 words');
+                
+                this.addLogEntry('🔥 EXTREME MODE: Starting 1000 words with 1000 concurrent threads!', 'warning');
+                this.addLogEntry('⚠️ This is experimental - may hit API rate limits', 'warning');
+                this.addLogEntry('🚀 If successful, this will be INCREDIBLY fast!', 'info');
+                
+                try {
+                    const response = await this.runPythonCommand('extreme');
+                    this.handleProcessingResponse(response);
+                } catch (error) {
+                    this.addLogEntry(`❌ Error in EXTREME mode: ${error.message}`, 'error');
+                } finally {
+                    this.setProcessingState(false);
+                    await this.loadStats();
+                    this.addLogEntry('✅ EXTREME mode completed', 'success');
+                }
+            }
+            
+            async processBatch() {
+                this.setProcessingState(true, 'continuous');
+                try {
+                    this.batchProcessing = true;
+                    await this.runBatchProcessing();
+                } catch (error) {
+                    this.addLogEntry(`Error: ${error.message}`, 'error');
+                } finally {
+                    this.batchProcessing = false;
+                    this.setProcessingState(false);
+                    await this.loadStats();
+                }
+            }
+            
+            async processAll() {
+                this.setProcessingState(true, 'all remaining');
+                
+                // Warn user about intensive operation
+                this.addLogEntry('🚨 Starting "Process All" with intelligent resource regulation...', 'warning');
+                this.addLogEntry('🛡️ System will automatically throttle based on CPU/Memory usage', 'info');
+                this.addLogEntry('⚡ Using client-side batch processing to avoid timeouts', 'info');
+                
+                try {
+                    // Instead of one long server call, use client-side batch processing
+                    this.processAllWords = true;
+                    await this.runProcessAllLoop();
+                } catch (error) {
+                    this.addLogEntry(`❌ Error in Process All: ${error.message}`, 'error');
+                } finally {
+                    this.processAllWords = false;
+                    this.setProcessingState(false);
+                    await this.loadStats();
+                    this.addLogEntry('✅ Process All operation completed', 'success');
+                }
+            }
+            
+            async runProcessAllLoop() {
+                let totalProcessed = 0;
+                const startTime = Date.now();
+                
+                this.addLogEntry('🚀 Starting continuous processing of all remaining words...', 'info');
+                
+                while (this.processAllWords && this.stats.remainingWords > 0) {
+                    try {
+                        // Check system resources every 10 words
+                        if (totalProcessed % 10 === 0) {
+                            await this.loadStats();
+                            const sysPerf = this.stats.systemPerformance;
+                            if (sysPerf) {
+                                const cpu = sysPerf.cpu_percent || 0;
+                                const memory = sysPerf.memory_percent || 0;
+                                
+                                if (cpu > 85 || memory > 90) {
+                                    this.addLogEntry(`⚠️ High resource usage - throttling (CPU: ${cpu.toFixed(1)}%, Memory: ${memory.toFixed(1)}%)`, 'warning');
+                                    await this.sleep(3000); // 3 second delay
+                                } else if (cpu > 75 || memory > 80) {
+                                    await this.sleep(1500); // 1.5 second delay
+                                }
+                            }
+                        }
+                        
+                        // Process single word
+                        const response = await this.runPythonCommand('single');
+                        this.handleProcessingResponse(response);
+                        
+                        totalProcessed++;
+                        
+                        // Update stats in real-time
+                        await this.loadStats();
+                        
+                        // Enhanced progress reporting every 5 words
+                        if (totalProcessed % 5 === 0) {
+                            const elapsed = (Date.now() - startTime) / 1000;
+                            const rate = (totalProcessed / (elapsed / 3600)).toFixed(1);
+                            const remaining = this.stats.remainingWords || 0;
+                            
+                            this.addLogEntry(`📊 Progress: ${totalProcessed} processed | ${rate} words/hour | ${remaining} remaining`, 'success');
+                        }
+                        
+                        // Adaptive delay based on system performance
+                        const delay = this.calculateAdaptiveDelay();
+                        await this.sleep(delay);
+                        
+                        // Stop if too many errors
+                        if (this.stats.consecutiveErrors >= 20) {
+                            this.addLogEntry('🛑 Stopping due to excessive consecutive errors', 'error');
+                            break;
+                        }
+                        
+                        // Check if user clicked stop
+                        if (!this.processAllWords) {
+                            this.addLogEntry('⏹️ Process All stopped by user', 'warning');
+                            break;
+                        }
+                        
+                    } catch (error) {
+                        this.addLogEntry(`❌ Error processing word: ${error.message}`, 'error');
+                        await this.sleep(5000); // Longer delay on error
+                    }
+                }
+                
+                const totalTime = (Date.now() - startTime) / 1000;
+                const finalRate = totalProcessed > 0 ? (totalProcessed / (totalTime / 3600)).toFixed(1) : 0;
+                
+                this.addLogEntry(`🎉 Process All completed: ${totalProcessed} words in ${this.formatTime(totalTime)} (${finalRate} words/hour)`, 'success');
+            }
+            
+            stopProcessing() {
+                this.batchProcessing = false;
+                this.processAllWords = false; // Also stop Process All
+                this.setProcessingState(false);
+                this.addLogEntry('🛑 Stop requested - halting all processing.', 'warning');
+            }
+            
+            async runBatchProcessing() {
+                let wordsProcessedThisBatch = 0;
+                const batchStartTime = Date.now();
+                
+                this.addLogEntry('🚀 Starting intelligent batch processing with resource monitoring...', 'info');
+                
+                while (this.batchProcessing && this.stats.remainingWords > 0) {
+                    try {
+                        // Check system resources every 10 words
+                        if (wordsProcessedThisBatch % 10 === 0) {
+                            await this.loadStats();
+                            const sysPerf = this.stats.systemPerformance;
+                            if (sysPerf) {
+                                const cpu = sysPerf.cpu_percent || 0;
+                                const memory = sysPerf.memory_percent || 0;
+                                
+                                if (cpu > 85 || memory > 90) {
+                                    this.addLogEntry(`⚠️ High resource usage - throttling batch processing (CPU: ${cpu.toFixed(1)}%, Memory: ${memory.toFixed(1)}%)`, 'warning');
+                                    await this.sleep(2000); // Extra delay
+                                }
+                            }
+                        }
+                        
+                        this.addLogEntry(`🔄 Processing word ${wordsProcessedThisBatch + 1} in batch...`, 'info');
+                        
+                        const response = await this.runPythonCommand('single');
+                        this.handleProcessingResponse(response);
+                        
+                        wordsProcessedThisBatch++;
+                        
+                        // Real-time stats update
+                        await this.loadStats();
+                        
+                        // Enhanced progress reporting every 5 words
+                        if (wordsProcessedThisBatch % 5 === 0) {
+                            const batchDuration = (Date.now() - batchStartTime) / 1000;
+                            const batchSpeed = (wordsProcessedThisBatch / (batchDuration / 3600)).toFixed(1);
+                            const remaining = this.stats.remainingWords || 0;
+                            
+                            this.addLogEntry(`⚡ Progress: ${wordsProcessedThisBatch} words | ${batchSpeed} words/hour | ${remaining} remaining`, 'success');
+                        }
+                        
+                        // Adaptive delay based on system performance
+                        const delay = this.calculateAdaptiveDelay();
+                        await this.sleep(delay);
+                        
+                        // Enhanced error checking
+                        if (this.stats.consecutiveErrors >= 50) {
+                            this.addLogEntry('🛑 Stopping batch due to excessive errors', 'error');
+                            break;
+                        }
+                        
+                    } catch (error) {
+                        this.addLogEntry(`❌ Batch error: ${error.message}`, 'error');
+                        await this.sleep(5000); // Longer delay on error
+                    }
+                }
+                
+                    const totalBatchTime = (Date.now() - batchStartTime) / 1000;
+                const finalSpeed = wordsProcessedThisBatch > 0 ? (wordsProcessedThisBatch / (totalBatchTime / 3600)).toFixed(1) : 0;
+                
+                this.addLogEntry(`✅ Batch completed: ${wordsProcessedThisBatch} words in ${totalBatchTime.toFixed(1)}s (${finalSpeed} words/hour)`, 'success');
+            }
+            
+            calculateAdaptiveDelay() {
+                // Calculate delay based on system performance and error rate
+                let baseDelay = 1000; // 1 second base
+                
+                if (this.stats.systemPerformance) {
+                    const cpu = this.stats.systemPerformance.cpu_percent || 0;
+                    const memory = this.stats.systemPerformance.memory_percent || 0;
+                    
+                    // Increase delay for high resource usage
+                    if (cpu > 80 || memory > 85) {
+                        baseDelay *= 3; // 3 seconds
+                    } else if (cpu > 60 || memory > 70) {
+                        baseDelay *= 1.5; // 1.5 seconds
+                    }
+                }
+                
+                // Increase delay for consecutive errors
+                const errors = this.stats.consecutiveErrors || 0;
+                if (errors > 10) {
+                    baseDelay *= 2;
+                } else if (errors > 5) {
+                    baseDelay *= 1.3;
+                }
+                
+                return Math.min(baseDelay, 10000); // Cap at 10 seconds
+            }
+            
+            async runPythonCommand(command) {
+                const response = await fetch('/run_python', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return await response.text();
+            }
+            
+            handleProcessingResponse(response) {
+                const lines = response.split('\n');
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    if (!trimmedLine) continue;
+                    
+                    // Enhanced log parsing for detailed feedback
+                    if (trimmedLine.includes('PROCESSING:')) {
+                        this.addLogEntry(trimmedLine, 'info');
+                    } else if (trimmedLine.includes('Progress:')) {
+                        this.addLogEntry(trimmedLine, 'info');
+                    } else if (trimmedLine.includes('Starting AI analysis')) {
+                        this.addLogEntry(trimmedLine, 'info');
+                    } else if (trimmedLine.includes('Sending to AI:')) {
+                        this.addLogEntry(trimmedLine, 'info');
+                    } else if (trimmedLine.includes('Prompt length:')) {
+                        this.addLogEntry(trimmedLine, 'info');
+                    } else if (trimmedLine.includes('AI Response time:')) {
+                        this.addLogEntry(trimmedLine, 'success');
+                    } else if (trimmedLine.includes('AI Response length:')) {
+                        this.addLogEntry(trimmedLine, 'info');
+                    } else if (trimmedLine.includes('SUCCESS: Processed')) {
+                        this.addLogEntry(trimmedLine, 'success');
+                    } else if (trimmedLine.includes('Saved to:')) {
+                        this.addLogEntry(trimmedLine, 'success');
+                    } else if (trimmedLine.includes('Analysis:')) {
+                        this.addLogEntry(trimmedLine, 'info');
+                    } else if (trimmedLine.includes('VAD:')) {
+                        this.addLogEntry(trimmedLine, 'info');
+                    } else if (trimmedLine.includes('Speed:')) {
+                        this.addLogEntry(trimmedLine, 'success');
+                    } else if (trimmedLine.includes('FAILED:')) {
+                        this.addLogEntry(trimmedLine, 'error');
+                    } else if (trimmedLine.includes('JSON parsing failed:')) {
+                        this.addLogEntry(trimmedLine, 'error');
+                    } else if (trimmedLine.includes('No JSON found')) {
+                        this.addLogEntry(trimmedLine, 'error');
+                    } else if (trimmedLine.includes('Error') || trimmedLine.includes('❌')) {
+                        this.addLogEntry(trimmedLine, 'error');
+                    } else if (trimmedLine.includes('=====')) {
+                        // Skip separator lines
+                    } else if (trimmedLine.length > 5) {
+                        // Show other important lines
+                        this.addLogEntry(trimmedLine, 'info');
+                    }
+                }
+            }
+            
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // DeepSeek API Status Functions
+        async function checkDeepSeekStatus() {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            statusDot.className = 'status-dot checking';
+            statusText.textContent = 'Checking...';
+            
+            try {
+                const response = await fetch('/api/deepseek-status');
+                const result = await response.text();
+                
+                if (result.includes('connected')) {
+                    statusDot.className = 'status-dot running';
+                    statusText.textContent = 'Connected';
+                    window.wordProcessor?.addLogEntry('✅ DeepSeek API is connected and ready!', 'success');
+                } else {
+                    statusDot.className = 'status-dot stopped';
+                    statusText.textContent = 'Error';
+                    window.wordProcessor?.addLogEntry('⚠️ DeepSeek API connection issue', 'warning');
+                }
+            } catch (error) {
+                statusDot.className = 'status-dot stopped';
+                statusText.textContent = 'Offline';
+                window.wordProcessor?.addLogEntry('❌ Cannot connect to DeepSeek API', 'error');
+            }
+        }
+
+        // Add CSS animations for enhanced real-time UI
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.8; transform: scale(1.02); }
+                100% { opacity: 1; transform: scale(1); }
+            }
+            
+            @keyframes flash {
+                0% { background-color: transparent; }
+                50% { background-color: rgba(40, 167, 69, 0.3); }
+                100% { background-color: transparent; }
+            }
+            
+            .stat-number {
+                transition: all 0.3s ease;
+            }
+            
+            .progress-fill {
+                transition: width 0.5s ease, background-color 0.3s ease;
+            }
+            
+            .current-word {
+                transition: all 0.3s ease;
+            }
+            
+            .processing-indicator {
+                animation: pulse 2s infinite;
+            }
+            
+            .resource-critical {
+                animation: pulse 1s infinite;
+                color: #dc3545 !important;
+            }
+            
+            .stat-updated {
+                animation: flash 0.6s ease;
+            }
+            
+            .eta-display {
+                display: flex;
+                gap: 15px;
+                margin: 20px 0;
+                justify-content: center;
+            }
+            
+            .eta-box {
+                background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+                border: 2px solid #dee2e6;
+                border-radius: 10px;
+                padding: 15px 20px;
+                text-align: center;
+                min-width: 200px;
+                transition: all 0.3s ease;
+            }
+            
+            .eta-box.primary {
+                border-color: #007bff;
+                background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            }
+            
+            .eta-box.secondary {
+                border-color: #6c757d;
+            }
+            
+            .eta-box.live {
+                border-color: #17a2b8;
+                background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+                animation: pulse 2s infinite;
+            }
+            
+            .eta-box.live .eta-number {
+                color: #0d7377;
+                font-size: 1.6rem;
+            }
+            
+            .eta-subtitle {
+                font-size: 0.75rem;
+                color: #8e8e93;
+                margin-top: 2px;
+                font-style: italic;
+            }
+            
+            .eta-number {
+                font-size: 1.8rem;
+                font-weight: bold;
+                color: #495057;
+                margin-bottom: 5px;
+            }
+            
+            .eta-box.primary .eta-number {
+                color: #0056b3;
+            }
+            
+            .eta-label {
+                font-size: 0.9rem;
+                color: #6c757d;
+                font-weight: 500;
+            }
+            
+            .eta-box:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+            
+            .analysis-btn.fivehundred {
+                background: linear-gradient(135deg, #007bff, #0056b3);
+                border-color: #007bff;
+                font-weight: bold;
+                font-size: 0.95rem;
+            }
+            
+            .analysis-btn.fivehundred:hover {
+                background: linear-gradient(135deg, #0056b3, #004085);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+            }
+
+            .analysis-btn.thousand {
+                background: linear-gradient(135deg, #28a745, #20c997);
+                border-color: #28a745;
+                font-weight: bold;
+            }
+            
+            .analysis-btn.thousand:hover {
+                background: linear-gradient(135deg, #218838, #1ea885);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+            }
+            
+            .analysis-btn.extreme {
+                background: linear-gradient(135deg, #dc3545, #fd7e14);
+                border-color: #dc3545;
+                font-weight: bold;
+                font-size: 0.9rem;
+                animation: pulse 2s infinite;
+            }
+            
+            .analysis-btn.extreme:hover {
+                background: linear-gradient(135deg, #c82333, #e66b00);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+                animation: none;
+            }
+        `;
+        document.head.appendChild(style);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.getElementById('wordAnalysisApp')) {
+                window.wordProcessor = new WordProcessorInterface();
+                
+                // Check DeepSeek API status on page load
+                setTimeout(() => {
+                    checkDeepSeekStatus();
+                }, 1000);
+                
+                // Auto-check status every 60 seconds
+                setInterval(checkDeepSeekStatus, 60000);
+            }
+        });
+    </script>
+</body>
+</html>

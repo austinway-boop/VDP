@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test UI - No Cache</title>
+</head>
+<body>
+    <h1>Quick Test</h1>
+    <button onclick="testAPI()">Test API Call</button>
+    <div id="results"></div>
+    
+    <script>
+        async function testAPI() {
+            console.log('Testing API...');
+            try {
+                const response = await fetch('/api/analyze-audio', {
+                    method: 'POST',
+                    body: new FormData()
+                });
+                
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Full response:', data);
+                
+                if (data.success && data.result.emotion_analysis) {
+                    const wordAnalysis = data.result.emotion_analysis.word_analysis || [];
+                    console.log('Word analysis length:', wordAnalysis.length);
+                    console.log('Word analysis data:', wordAnalysis);
+                    
+                    document.getElementById('results').innerHTML = `
+                        <h3>Results:</h3>
+                        <p>Transcription: ${data.result.transcription}</p>
+                        <p>Word Analysis Length: ${wordAnalysis.length}</p>
+                        <p>Words: ${wordAnalysis.map(w => w.word).join(', ')}</p>
+                    `;
+                } else {
+                    document.getElementById('results').innerHTML = 'Error or no data';
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('results').innerHTML = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "total_words_processed": 1,
+  "total_processing_time": 24.722965002059937,
+  "average_time_per_word": 24.722965002059937,
+  "sessions": [
+    {
+      "word": "3-membered",
+      "processing_time": 24.722965002059937,
+      "cost_saved": 0.006735,
+      "timestamp": "2025-10-03 17:52:34.543049"
+    }
+  ],
+  "cost_savings": 0.006735
+}

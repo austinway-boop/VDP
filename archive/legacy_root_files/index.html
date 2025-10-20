@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Recorder</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app">
+        <h1>Audio Recorder</h1>
+        
+        <div class="controls">
+            <button id="recordBtn" class="record-btn">Record 10s</button>
+            <button id="uploadBtn" class="upload-btn">Upload File</button>
+            <button id="emotionBtn" class="emotion-btn" style="display:none;">🎭 Analyze Emotion</button>
+            <input type="file" id="fileInput" accept="audio/*">
+        </div>
+
+        <div class="recording-status" id="recordingStatus">
+            Recording... <span id="countdown">10</span>s remaining
+        </div>
+
+        <div class="status-message" id="statusMessage"></div>
+
+        <div class="playback-controls" id="playbackControls">
+            <button id="playBtn" class="play-btn">Play</button>
+            <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
+        </div>
+
+        <div class="waveform-section" id="waveformSection">
+            <div class="arousal-container">
+                <canvas id="arousal"></canvas>
+                <div class="arousal-info" id="arousalInfo">Avg Arousal: 0%</div>
+                <div class="arousal-bar-container">
+                    <div class="arousal-bar-fill" id="arousalBarFill"></div>
+                </div>
+            </div>
+            <div class="metrics-container" id="metricsContainer">
+                <div class="metric-container loudness-container">
+                    <canvas id="loudnessCanvas" class="metric-canvas"></canvas>
+                    <div class="metric-info" id="loudnessInfo">Loudness: 0 dB</div>
+                    <div class="metric-bar-container">
+                        <div class="metric-bar-fill" id="loudnessBarFill"></div>
+                    </div>
+                </div>
+                <div class="metric-container pitch-container">
+                    <canvas id="pitchCanvas" class="metric-canvas"></canvas>
+                    <div class="metric-info" id="pitchInfo">Pitch: 0 Hz</div>
+                    <div class="metric-bar-container">
+                        <div class="metric-bar-fill" id="pitchBarFill"></div>
+                    </div>
+                </div>
+                <div class="metric-container pace-container">
+                    <canvas id="paceCanvas" class="metric-canvas"></canvas>
+                    <div class="metric-info" id="paceInfo">Pace: 0 WPM</div>
+                    <div class="metric-bar-container">
+                        <div class="metric-bar-fill" id="paceBarFill"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="waveform-container">
+                <canvas id="waveform"></canvas>
+                <div class="scrubber" id="scrubber"></div>
+            </div>
+            <div class="speech-analysis" id="speechAnalysis">
+                <div class="speech-boxes" id="speechBoxes"></div>
+                <div class="speech-stats">
+                    <div>Speech Activity</div>
+                    <div class="speaking-percentage" id="speakingPercentage">Speaking: 0%</div>
+                </div>
+            </div>
+            <div class="audio-info" id="audioInfo">
+                Duration: <span id="duration">0:00</span>
+            </div>
+        </div>
+        
+        <!-- Emotion Analysis Results -->
+        <div class="emotion-analysis" id="emotionAnalysis" style="display:none;">
+            <h3>🎭 Emotion Analysis Results</h3>
+            <div class="emotion-transcription" id="emotionTranscription">
+                <strong>Transcription:</strong> <span id="transcriptionText">No speech detected</span>
+            </div>
+            <div class="word-analysis" id="wordAnalysis">
+                <strong>Word-by-Word Analysis:</strong>
+                <div class="word-breakdown" id="wordBreakdown">
+                    <!-- Individual words with color coding will appear here -->
+                </div>
+                <div class="word-legend">
+                    <span class="legend-item joy">😊 Joy</span>
+                    <span class="legend-item trust">🤝 Trust</span>
+                    <span class="legend-item anticipation">🤔 Anticipation</span>
+                    <span class="legend-item surprise">😮 Surprise</span>
+                    <span class="legend-item anger">😠 Anger</span>
+                    <span class="legend-item fear">😰 Fear</span>
+                    <span class="legend-item sadness">😢 Sadness</span>
+                    <span class="legend-item disgust">🤢 Disgust</span>
+                    <span class="legend-item neutral">😐 Neutral/Unknown</span>
+                </div>
+            </div>
+            <div class="emotion-results" id="emotionResults">
+                <div class="primary-emotion">
+                    <span id="emotionIcon">😐</span>
+                    <span id="emotionName">Neutral</span>
+                    <span id="emotionConfidence">0%</span>
+                </div>
+                <div class="emotion-details" id="emotionDetails">
+                    <!-- Emotion bars will be populated by JavaScript -->
+                </div>
+                <div class="vad-scores">
+                    <div class="vad-score">
+                        <label>Valence:</label>
+                        <span id="valenceScore">0.50</span>
+                    </div>
+                    <div class="vad-score">
+                        <label>Arousal:</label>
+                        <span id="arousalScore">0.50</span>
+                    </div>
+                    <div class="vad-score">
+                        <label>Dominance:</label>
+                        <span id="dominanceScore">0.50</span>
+                    </div>
+                </div>
+                <div class="sentiment-analysis">
+                    <label>Sentiment:</label>
+                    <span id="sentimentPolarity">Neutral</span>
+                    (<span id="sentimentStrength">50%</span>)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

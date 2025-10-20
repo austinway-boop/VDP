@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Emotion Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Word Emotion Analysis Section -->
+    <div class="word-analysis-app" id="wordAnalysisApp">
+        <h1>Word Emotion Analysis</h1>
+        
+        <div class="analysis-stats">
+            <div class="stat-box">
+                <div class="stat-number" id="totalWords">0</div>
+                <div class="stat-label">Total Words</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="processedWords">0</div>
+                <div class="stat-label">Processed</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="remainingWords">0</div>
+                <div class="stat-label">Remaining</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="completionPercent">0%</div>
+                <div class="stat-label">Complete</div>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="analysis-controls">
+            <button id="processSingleBtn" class="analysis-btn single">Process 1 Word</button>
+            <button id="processBatchBtn" class="analysis-btn batch">Process One After Another</button>
+            <button id="processAllBtn" class="analysis-btn all">Process As Many As Possible</button>
+            <button id="stopProcessingBtn" class="analysis-btn stop" disabled>Stop Processing</button>
+        </div>
+
+        <div class="current-word-display" id="currentWordDisplay">
+            <div class="current-word-label">Current Words:</div>
+            <div class="current-word" id="currentWord">-</div>
+        </div>
+
+        <div class="pricing-display" id="pricingDisplay">
+            <h3>Cost Analysis</h3>
+            <div class="pricing-stats">
+                <div class="pricing-stat">
+                    <div class="pricing-label">Total Spent:</div>
+                    <div class="pricing-value" id="totalCost">$0.0000</div>
+                </div>
+                <div class="pricing-stat">
+                    <div class="pricing-label">Cost per Word:</div>
+                    <div class="pricing-value" id="costPerWord">$0.000000</div>
+                </div>
+                <div class="pricing-stat">
+                    <div class="pricing-label">Estimated Remaining:</div>
+                    <div class="pricing-value" id="estimatedCost">$0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="processing-log" id="processingLog">
+            <h3>Processing Log</h3>
+            <div class="log-content" id="logContent">
+                Ready to process words...
+            </div>
+        </div>
+
+        <div class="error-status" id="errorStatus">
+            <div class="error-count">Consecutive Errors: <span id="errorCount">0</span></div>
+        </div>
+    </div>
+
+    <script src="word_analyzer.js"></script>
+</body>
+</html>

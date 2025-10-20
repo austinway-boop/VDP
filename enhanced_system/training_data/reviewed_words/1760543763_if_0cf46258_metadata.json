@@ -1,0 +1,39 @@
+{
+  "word_id": "1760543763_if_0cf46258",
+  "original_word": "if",
+  "clean_word": "if",
+  "word_index": 6,
+  "total_words": 23,
+  "full_text": "i really hope it does because if it doesn't that's going to really suck and like yeah that would suck i really hope",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmp6g9b7lzo.wav",
+  "timestamp": 1760543763,
+  "status": "word_corrected",
+  "audio_metadata": {
+    "service": "google",
+    "service_confidence": 0.88129234,
+    "estimated_confidence": 0.8130434782608696,
+    "final_confidence": 0.8539927953043479,
+    "audio_hash": "5289e4d37e5ec66e6e854c50abf6fb29",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "i really hope it does because if it doesn't that's going to really suck and like yeah that would suck i really hope",
+        "confidence": 0.88129234
+      }
+    ]
+  },
+  "estimated_position": "Word 7 of 23",
+  "context": {
+    "before": "does because",
+    "target": "if",
+    "after": "it doesn't",
+    "full_context": "does because if it doesn't"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty",
+  "corrected_word": "if",
+  "corrected_by": "admin",
+  "correction_timestamp": 1760551784
+}

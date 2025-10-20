@@ -1,0 +1,74 @@
+{
+  "session_processed": 13,
+  "session_start_time": 1759620641.73376,
+  "words_this_session": [
+    {
+      "word": "cheering",
+      "processing_time": 10.869897842407227,
+      "timestamp": 1760374021.5215209
+    },
+    {
+      "word": "chronic",
+      "processing_time": 10.924922943115234,
+      "timestamp": 1760374569.923174
+    },
+    {
+      "word": "aa",
+      "processing_time": 10.48072600364685,
+      "timestamp": 1760465871.203817
+    },
+    {
+      "word": "aaa",
+      "processing_time": 9.81458306312561,
+      "timestamp": 1760465881.1817899
+    },
+    {
+      "word": "aah",
+      "processing_time": 9.837737083435059,
+      "timestamp": 1760465891.196846
+    },
+    {
+      "word": "aahed",
+      "processing_time": 9.855485916137695,
+      "timestamp": 1760465901.216993
+    },
+    {
+      "word": "aahing",
+      "processing_time": 9.88953709602356,
+      "timestamp": 1760465911.268339
+    },
+    {
+      "word": "aahs",
+      "processing_time": 9.681376934051514,
+      "timestamp": 1760465921.137805
+    },
+    {
+      "word": "aal",
+      "processing_time": 9.858100891113281,
+      "timestamp": 1760465931.184352
+    },
+    {
+      "word": "aalii",
+      "processing_time": 9.9409499168396,
+      "timestamp": 1760465941.319015
+    },
+    {
+      "word": "aaliis",
+      "processing_time": 9.809795141220093,
+      "timestamp": 1760465951.31614
+    },
+    {
+      "word": "aals",
+      "processing_time": 9.919764041900635,
+      "timestamp": 1760465961.415612
+    },
+    {
+      "word": "aardvark",
+      "processing_time": 10.556220293045044,
+      "timestamp": 1760465973.1755688
+    }
+  ],
+  "avg_processing_time": 9.966037858616222,
+  "total_session_time": 845331.4418187141,
+  "last_updated": 1760465973.1755788
+}

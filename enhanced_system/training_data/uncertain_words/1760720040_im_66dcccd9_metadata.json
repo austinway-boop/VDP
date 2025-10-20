@@ -1,0 +1,36 @@
+{
+  "word_id": "1760720040_im_66dcccd9",
+  "original_word": "i'm",
+  "clean_word": "im",
+  "word_index": 23,
+  "total_words": 36,
+  "full_text": "hello i'm testing if my program works i'm really hoping it does i've been texting you for very long time it's speech analysis i'm not talking to you chris but i am testing my program so",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpcp7yxsgx.wav",
+  "timestamp": 1760720040,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "google",
+    "service_confidence": 0.95099586,
+    "estimated_confidence": 0.8066666666666666,
+    "final_confidence": 0.8932641826666666,
+    "audio_hash": "168ed6758f063b47ff9e915df844d002",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "hello i'm testing if my program works i'm really hoping it does i've been texting you for very long time it's speech analysis i'm not talking to you chris but i am testing my program so",
+        "confidence": 0.95099586
+      }
+    ]
+  },
+  "estimated_position": "Word 24 of 36",
+  "context": {
+    "before": "speech analysis",
+    "target": "i'm",
+    "after": "not talking",
+    "full_context": "speech analysis i'm not talking"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

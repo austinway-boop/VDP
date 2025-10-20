@@ -1,0 +1,36 @@
+{
+  "word_id": "1760720469_am_f0ce7265",
+  "original_word": "am",
+  "clean_word": "am",
+  "word_index": 1,
+  "total_words": 38,
+  "full_text": "i am so excited to see this program work and in action so it's super it's going to be i'm so i just like i'm really hoping it works it's the first time since i haven't tested it",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpcfaln7i4.wav",
+  "timestamp": 1760720469,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "google",
+    "service_confidence": 0.90161896,
+    "estimated_confidence": 0.8031578947368421,
+    "final_confidence": 0.8622345338947368,
+    "audio_hash": "13ac5032908c8bc8c1adaf3470921ca2",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "i am so excited to see this program work and in action so it's super it's going to be i'm so i just like i'm really hoping it works it's the first time since i haven't tested it",
+        "confidence": 0.90161896
+      }
+    ]
+  },
+  "estimated_position": "Word 2 of 38",
+  "context": {
+    "before": "i",
+    "target": "am",
+    "after": "so excited",
+    "full_context": "i am so excited"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

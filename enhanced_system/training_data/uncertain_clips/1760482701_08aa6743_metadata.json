@@ -1,0 +1,22 @@
+{
+  "clip_id": "1760482701_08aa6743",
+  "original_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpb3fe7jo7.wav",
+  "transcribed_text": "i'm testing my program to go to work no it's not going to work are you sure cuz i tested it last time it didn't work and i'm hoping it works now but i probably",
+  "confidence": 0.645252042,
+  "timestamp": 1760482701,
+  "status": "pending_review",
+  "metadata": {
+    "service": "google",
+    "service_confidence": 0.71542007,
+    "estimated_confidence": 0.54,
+    "final_confidence": 0.645252042,
+    "audio_hash": "08aa674302e7ba53c26d9a3514f31132",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "i'm testing my program to go to work no it's not going to work are you sure cuz i tested it last time it didn't work and i'm hoping it works now but i probably",
+        "confidence": 0.71542007
+      }
+    ]
+  }
+}

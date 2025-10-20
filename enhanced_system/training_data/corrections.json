@@ -1,0 +1,124 @@
+{
+  "corrections": [
+    {
+      "clip_id": "1760657623_196f42c5",
+      "original_text": "hello i'm having an amazing day wait wait wait",
+      "corrected_text": "hello i'm having an amazing day wait wait wait",
+      "audio_hash": "196f42c52a84682a7e8b958c58b5d094",
+      "confidence": 0.697780214888889,
+      "user_id": "admin",
+      "timestamp": 1760720567
+    }
+  ],
+  "audio_hashes": {
+    "196f42c52a84682a7e8b958c58b5d094": "hello i'm having an amazing day wait wait wait"
+  },
+  "vocabulary_improvements": {},
+  "word_corrections": [
+    {
+      "word_id": "1760550923_if_7516a4f7",
+      "original_word": "if",
+      "corrected_word": "if",
+      "context": {
+        "before": "be amazing",
+        "target": "if",
+        "after": "not well",
+        "full_context": "be amazing if not well"
+      },
+      "full_text": "oh my gosh this is so exciting i just finished my program and i'm really hoping it works if it does that's going to be amazing if not well you know that's not",
+      "user_id": "admin",
+      "timestamp": 1760551756,
+      "type": "word_correction"
+    },
+    {
+      "word_id": "1760550923_im_03c9a7d2",
+      "original_word": "i'm",
+      "corrected_word": "i'm",
+      "context": {
+        "before": "program and",
+        "target": "i'm",
+        "after": "really hoping",
+        "full_context": "program and i'm really hoping"
+      },
+      "full_text": "oh my gosh this is so exciting i just finished my program and i'm really hoping it works if it does that's going to be amazing if not well you know that's not",
+      "user_id": "admin",
+      "timestamp": 1760551766,
+      "type": "word_correction"
+    },
+    {
+      "word_id": "1760550923_oh_b6f5603c",
+      "original_word": "oh",
+      "corrected_word": "oh",
+      "context": {
+        "before": "",
+        "target": "oh",
+        "after": "my gosh",
+        "full_context": "oh my gosh"
+      },
+      "full_text": "oh my gosh this is so exciting i just finished my program and i'm really hoping it works if it does that's going to be amazing if not well you know that's not",
+      "user_id": "admin",
+      "timestamp": 1760551772,
+      "type": "word_correction"
+    },
+    {
+      "word_id": "1760543763_if_0cf46258",
+      "original_word": "if",
+      "corrected_word": "if",
+      "context": {
+        "before": "does because",
+        "target": "if",
+        "after": "it doesn't",
+        "full_context": "does because if it doesn't"
+      },
+      "full_text": "i really hope it does because if it doesn't that's going to really suck and like yeah that would suck i really hope",
+      "user_id": "admin",
+      "timestamp": 1760551784,
+      "type": "word_correction"
+    },
+    {
+      "word_id": "1760657634_im_cd55f98f",
+      "original_word": "i'm",
+      "corrected_word": "i'm",
+      "context": {
+        "before": "hello",
+        "target": "i'm",
+        "after": "having an",
+        "full_context": "hello i'm having an"
+      },
+      "full_text": "hello i'm having an amazing day wait wait wait",
+      "user_id": "admin",
+      "timestamp": 1760720560,
+      "type": "word_correction"
+    },
+    {
+      "word_id": "1760657634_im_cd55f98f",
+      "original_word": "i'm",
+      "corrected_word": "i'm",
+      "context": {
+        "before": "hello",
+        "target": "i'm",
+        "after": "having an",
+        "full_context": "hello i'm having an"
+      },
+      "full_text": "hello i'm having an amazing day wait wait wait",
+      "user_id": "admin",
+      "timestamp": 1760720563,
+      "type": "word_correction"
+    }
+  ],
+  "confidence_calibration": {
+    "samples": [
+      {
+        "confidence": 0.697780214888889,
+        "correct": false,
+        "timestamp": 1760720567
+      }
+    ],
+    "accuracy_by_confidence": {
+      "0.6": {
+        "correct": 0,
+        "total": 1
+      }
+    }
+  }
+}

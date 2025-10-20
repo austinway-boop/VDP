@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎤 Enhanced Speech Training Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00b894, #00a085);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+        }
+
+        .review-area {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stats-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stats-card h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-number {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #00b894;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .tab-navigation {
+            display: flex;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            color: #666;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 1em;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(45deg, #00b894, #00a085);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(0, 184, 148, 0.1);
+            color: #00b894;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .review-item {
+            background: linear-gradient(145deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0, 184, 148, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .review-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 184, 148, 0.2);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .item-id {
+            font-weight: 600;
+            color: #4a5568;
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 184, 148, 0.1);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+
+        .confidence-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .confidence-low {
+            background: linear-gradient(45deg, #e53e3e, #fc8181);
+        }
+
+        .confidence-medium {
+            background: linear-gradient(45deg, #dd6b20, #f6ad55);
+        }
+
+        .confidence-high {
+            background: linear-gradient(45deg, #38a169, #68d391);
+        }
+
+        .transcription, .word-context {
+            background: linear-gradient(145deg, #ffffff 0%, #f7fafc 100%);
+            padding: 18px;
+            border-radius: 10px;
+            margin: 18px 0;
+            border: 2px solid #e2e8f0;
+            font-style: italic;
+            color: #4a5568;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .transcription::before, .word-context::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(45deg, #00b894, #00a085);
+        }
+
+        .word-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .word-detail {
+            background: rgba(0, 184, 148, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #00b894;
+        }
+
+        .word-detail strong {
+            color: #4a5568;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .uncertainty-reasons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .reason-tag {
+            background: linear-gradient(45deg, #fdcb6e, #e17055);
+            color: #2d3436;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .audio-controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 184, 148, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 184, 148, 0.1);
+        }
+
+        audio {
+            width: 100%;
+            max-width: 450px;
+            border-radius: 8px;
+        }
+
+        .correction-form {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .correction-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .correction-input:focus {
+            outline: none;
+            border-color: #00b894;
+            box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00b894, #00a085);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #a0aec0, #cbd5e0);
+            color: #4a5568;
+            box-shadow: 0 4px 15px rgba(160, 174, 192, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(45deg, #8b9bb8, #a0aec0);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #e53e3e, #fc8181);
+            color: white;
+            box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(45deg, #c53030, #e53e3e);
+            transform: translateY(-2px);
+        }
+
+        .settings-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .settings-card h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .threshold-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .threshold-slider {
+            flex: 1;
+            min-width: 200px;
+            height: 8px;
+            border-radius: 5px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .threshold-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #00b894, #00a085);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 184, 148, 0.3);
+        }
+
+        .threshold-value {
+            font-weight: bold;
+            color: #00b894;
+            min-width: 60px;
+            background: rgba(0, 184, 148, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #00b894;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 25px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .empty-state p {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .empty-state .emoji {
+            font-size: 3em;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .alert {
+            padding: 18px 20px;
+            border-radius: 12px;
+            margin: 18px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: linear-gradient(145deg, #c6f6d5 0%, #9ae6b4 100%);
+            color: #2d7738;
+            border: 1px solid #68d391;
+        }
+
+        .alert-error {
+            background: linear-gradient(145deg, #fed7d7 0%, #feb2b2 100%);
+            color: #c53030;
+            border: 1px solid #fc8181;
+        }
+
+        .alert-warning {
+            background: linear-gradient(145deg, #fefcbf 0%, #f6e05e 100%);
+            color: #744210;
+            border: 1px solid #ecc94b;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #00b894, #00a085);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .sidebar {
+                order: -1;
+            }
+            
+            .stats-card {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .item-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .correction-form {
+                flex-direction: column;
+            }
+            
+            .correction-input {
+                min-width: unset;
+            }
+            
+            .word-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-btn {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 Enhanced Speech Training Panel</h1>
+            <p>Advanced review system for speech recognition and word-level corrections</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Main Review Area -->
+            <div class="review-area">
+                <!-- Tab Navigation -->
+                <div class="tab-navigation">
+                    <button class="tab-btn active" onclick="switchTab('clips')">
+                        🎵 Audio Clips
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('words')">
+                        📝 Word Reviews
+                    </button>
+                </div>
+
+                <!-- Audio Clips Tab -->
+                <div id="clips-tab" class="tab-content active">
+                    <h2 style="margin-bottom: 20px; color: #4a5568;">🔍 Review Uncertain Transcriptions</h2>
+                    <div id="clips-container">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading clips for review...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Word Reviews Tab -->
+                <div id="words-tab" class="tab-content">
+                    <h2 style="margin-bottom: 20px; color: #4a5568;">📝 Review Uncertain Words</h2>
+                    <div id="words-container">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading words for review...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Statistics Cards -->
+                <div class="stats-card">
+                    <h3>📊 Review Statistics</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <div class="stat-number" id="pending-count">-</div>
+                            <div class="stat-label">pending clips</div>
+                        </div>
+                        <div>
+                            <div class="stat-number" id="pending-words-count">-</div>
+                            <div class="stat-label">pending words</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card">
+                    <h3>✅ Completed Work</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <div class="stat-number" id="completed-count">-</div>
+                            <div class="stat-label">clips corrected</div>
+                        </div>
+                        <div>
+                            <div class="stat-number" id="completed-words-count">-</div>
+                            <div class="stat-label">words corrected</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card">
+                    <h3>📈 Learning Progress</h3>
+                    <div>
+                        <div class="stat-number" id="vocabulary-count">-</div>
+                        <div class="stat-label">new words learned</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Card -->
+                <div class="settings-card">
+                    <h3>⚙️ Settings</h3>
+                    <div>
+                        <strong>Confidence Threshold</strong>
+                        <p style="font-size: 0.9em; color: #666; margin: 8px 0;">Audio below this threshold gets flagged for review</p>
+                        <div class="threshold-control">
+                            <input type="range" id="threshold-slider" class="threshold-slider" 
+                                   min="0.1" max="1.0" step="0.05" value="0.7">
+                            <span class="threshold-value" id="threshold-value">0.70</span>
+                        </div>
+                        <button class="btn btn-primary" onclick="updateThreshold()" style="margin-top: 10px; width: 100%;">
+                            Update Threshold
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Local Model Card -->
+                <div class="settings-card">
+                    <h3>🤖 Local Speech Model</h3>
+                    <div id="local-model-info">
+                        <div class="loading">
+                            <div class="spinner" style="width: 30px; height: 30px;"></div>
+                            <p style="font-size: 0.9em;">Loading model info...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentStats = {};
+        let pendingClips = [];
+        let pendingWords = [];
+        let currentTab = 'clips';
+
+        // Load initial data
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadPendingClips();
+            loadPendingWords();
+            loadLocalModelInfo();
+            
+            // Set up threshold slider
+            const slider = document.getElementById('threshold-slider');
+            const valueDisplay = document.getElementById('threshold-value');
+            
+            slider.addEventListener('input', function() {
+                valueDisplay.textContent = parseFloat(this.value).toFixed(2);
+            });
+        });
+
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`button[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            currentTab = tabName;
+            
+            // Load data for the active tab if needed
+            if (tabName === 'words' && pendingWords.length === 0) {
+                loadPendingWords();
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentStats = data.stats;
+                    updateStatsDisplay();
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function updateStatsDisplay() {
+            // Update all stat numbers
+            document.getElementById('pending-count').textContent = currentStats.pending_reviews || 0;
+            document.getElementById('pending-words-count').textContent = currentStats.pending_words || 0;
+            document.getElementById('completed-count').textContent = currentStats.completed_corrections || 0;
+            document.getElementById('completed-words-count').textContent = currentStats.completed_word_corrections || 0;
+            document.getElementById('vocabulary-count').textContent = currentStats.vocabulary_improvements || 0;
+            
+            // Update progress bar
+            const totalWork = (currentStats.pending_reviews || 0) + (currentStats.pending_words || 0) + 
+                             (currentStats.completed_corrections || 0) + (currentStats.completed_word_corrections || 0);
+            const completedWork = (currentStats.completed_corrections || 0) + (currentStats.completed_word_corrections || 0);
+            const progressPercent = totalWork > 0 ? (completedWork / totalWork) * 100 : 0;
+            document.getElementById('progress-fill').style.width = progressPercent + '%';
+            
+            // Update slider
+            const slider = document.getElementById('threshold-slider');
+            const valueDisplay = document.getElementById('threshold-value');
+            slider.value = currentStats.confidence_threshold || 0.7;
+            valueDisplay.textContent = (currentStats.confidence_threshold || 0.7).toFixed(2);
+        }
+
+        async function loadPendingClips() {
+            try {
+                const response = await fetch('/api/pending-reviews');
+                const data = await response.json();
+                
+                if (data.success) {
+                    pendingClips = data.clips;
+                    displayClips();
+                } else {
+                    showError('clips-container', 'Failed to load clips: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error loading clips:', error);
+                showError('clips-container', 'Network error loading clips');
+            }
+        }
+
+        async function loadPendingWords() {
+            try {
+                const response = await fetch('/api/pending-word-reviews');
+                const data = await response.json();
+                
+                if (data.success) {
+                    pendingWords = data.words;
+                    displayWords();
+                } else {
+                    showError('words-container', 'Failed to load words: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error loading words:', error);
+                showError('words-container', 'Network error loading words');
+            }
+        }
+
+        function displayClips() {
+            const container = document.getElementById('clips-container');
+            
+            if (pendingClips.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="emoji">🎉</span>
+                        <h3>All caught up!</h3>
+                        <p>No audio clips pending review at the moment.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = pendingClips.map(clip => `
+                <div class="review-item" id="clip-${clip.clip_id}">
+                    <div class="item-header">
+                        <div class="item-id">Clip: ${clip.clip_id}</div>
+                        <div class="confidence-badge ${getConfidenceClass(clip.confidence)}">
+                            ${(clip.confidence * 100).toFixed(0)}% confidence
+                        </div>
+                    </div>
+                    
+                    <div class="transcription">
+                        "${clip.transcribed_text}"
+                    </div>
+                    
+                    <div class="audio-controls">
+                        <audio controls preload="metadata">
+                            <source src="/api/audio/${clip.clip_id}" type="audio/wav">
+                            <source src="/api/audio/${clip.clip_id}" type="audio/flac">
+                            <source src="/api/audio/${clip.clip_id}" type="audio/aiff">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                    
+                    <div class="correction-form">
+                        <input type="text" class="correction-input" id="correction-${clip.clip_id}" 
+                               placeholder="Enter the correct transcription..." 
+                               value="${clip.transcribed_text}">
+                        <button class="btn btn-primary" onclick="submitCorrection('${clip.clip_id}')">
+                            ✅ Submit
+                        </button>
+                        <button class="btn btn-secondary" onclick="skipClip('${clip.clip_id}')">
+                            ⏭️ Skip
+                        </button>
+                    </div>
+                    
+                    <div id="alert-${clip.clip_id}"></div>
+                </div>
+            `).join('');
+        }
+
+        function displayWords() {
+            const container = document.getElementById('words-container');
+            
+            if (pendingWords.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="emoji">📝</span>
+                        <h3>All words reviewed!</h3>
+                        <p>No uncertain words pending review at the moment.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = pendingWords.map(word => `
+                <div class="review-item" id="word-${word.word_id}">
+                    <div class="item-header">
+                        <div class="item-id">Word: ${word.word_id}</div>
+                        <div class="confidence-badge ${getConfidenceClass(word.audio_metadata?.final_confidence || 0)}">
+                            ${((word.audio_metadata?.final_confidence || 0) * 100).toFixed(0)}% confidence
+                        </div>
+                    </div>
+                    
+                    <div class="word-info">
+                        <div class="word-detail">
+                            <strong>Original Word:</strong>
+                            "${word.original_word}"
+                        </div>
+                        <div class="word-detail">
+                            <strong>Position:</strong>
+                            ${word.estimated_position}
+                        </div>
+                    </div>
+                    
+                    <div class="word-context">
+                        <strong>Context:</strong><br>
+                        ${word.context?.before || ''} <span style="background: rgba(102, 126, 234, 0.2); padding: 2px 6px; border-radius: 4px; font-weight: bold;">${word.context?.target || word.original_word}</span> ${word.context?.after || ''}
+                    </div>
+                    
+                    <div class="uncertainty-reasons">
+                        ${(word.uncertainty_reasons || []).map(reason => `
+                            <span class="reason-tag">${reason.replace('_', ' ')}</span>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="audio-controls">
+                        <audio controls preload="metadata">
+                            <source src="/api/word-audio/${word.word_id}" type="audio/wav">
+                            <source src="/api/word-audio/${word.word_id}" type="audio/webm">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                    
+                    <div class="correction-form">
+                        <input type="text" class="correction-input" id="word-correction-${word.word_id}" 
+                               placeholder="Enter the correct word..." 
+                               value="${word.original_word}">
+                        <button class="btn btn-primary" onclick="submitWordCorrection('${word.word_id}')">
+                            ✅ Submit
+                        </button>
+                        <button class="btn btn-secondary" onclick="skipWord('${word.word_id}')">
+                            ⏭️ Skip
+                        </button>
+                    </div>
+                    
+                    <div id="word-alert-${word.word_id}"></div>
+                </div>
+            `).join('');
+        }
+
+        function getConfidenceClass(confidence) {
+            if (confidence < 0.4) return 'confidence-low';
+            if (confidence < 0.7) return 'confidence-medium';
+            return 'confidence-high';
+        }
+
+        async function submitCorrection(clipId) {
+            const input = document.getElementById(`correction-${clipId}`);
+            const correctedText = input.value.trim();
+            
+            if (!correctedText) {
+                showItemAlert(clipId, 'Please enter a correction', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/submit-correction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        clip_id: clipId,
+                        corrected_text: correctedText,
+                        user_id: 'admin'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showItemAlert(clipId, 'Correction submitted successfully! 🎉', 'success');
+                    
+                    // Remove clip from display after a short delay
+                    setTimeout(() => {
+                        document.getElementById(`clip-${clipId}`).remove();
+                        
+                        // Update pending clips array
+                        pendingClips = pendingClips.filter(clip => clip.clip_id !== clipId);
+                        
+                        // Refresh stats
+                        loadStats();
+                        
+                        // Show empty state if no clips left
+                        if (pendingClips.length === 0) {
+                            displayClips();
+                        }
+                    }, 2000);
+                } else {
+                    showItemAlert(clipId, 'Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error submitting correction:', error);
+                showItemAlert(clipId, 'Network error submitting correction', 'error');
+            }
+        }
+
+        async function submitWordCorrection(wordId) {
+            const input = document.getElementById(`word-correction-${wordId}`);
+            const correctedWord = input.value.trim();
+            
+            if (!correctedWord) {
+                showWordAlert(wordId, 'Please enter a corrected word', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/submit-word-correction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        word_id: wordId,
+                        corrected_word: correctedWord,
+                        user_id: 'admin'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showWordAlert(wordId, 'Word correction submitted successfully! 📝', 'success');
+                    
+                    // Remove word from display after a short delay
+                    setTimeout(() => {
+                        document.getElementById(`word-${wordId}`).remove();
+                        
+                        // Update pending words array
+                        pendingWords = pendingWords.filter(word => word.word_id !== wordId);
+                        
+                        // Refresh stats
+                        loadStats();
+                        
+                        // Show empty state if no words left
+                        if (pendingWords.length === 0) {
+                            displayWords();
+                        }
+                    }, 2000);
+                } else {
+                    showWordAlert(wordId, 'Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error submitting word correction:', error);
+                showWordAlert(wordId, 'Network error submitting word correction', 'error');
+            }
+        }
+
+        async function skipClip(clipId) {
+            try {
+                const response = await fetch('/api/skip-clip', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        clip_id: clipId
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showItemAlert(clipId, 'Clip skipped ⏭️', 'success');
+                    
+                    // Remove clip from display after a short delay
+                    setTimeout(() => {
+                        document.getElementById(`clip-${clipId}`).remove();
+                        
+                        // Update pending clips array
+                        pendingClips = pendingClips.filter(clip => clip.clip_id !== clipId);
+                        
+                        // Refresh stats
+                        loadStats();
+                        
+                        // Show empty state if no clips left
+                        if (pendingClips.length === 0) {
+                            displayClips();
+                        }
+                    }, 1500);
+                } else {
+                    showItemAlert(clipId, 'Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error skipping clip:', error);
+                showItemAlert(clipId, 'Network error skipping clip', 'error');
+            }
+        }
+
+        async function skipWord(wordId) {
+            try {
+                const response = await fetch('/api/skip-word', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        word_id: wordId
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showWordAlert(wordId, 'Word skipped ⏭️', 'success');
+                    
+                    // Remove word from display after a short delay
+                    setTimeout(() => {
+                        document.getElementById(`word-${wordId}`).remove();
+                        
+                        // Update pending words array
+                        pendingWords = pendingWords.filter(word => word.word_id !== wordId);
+                        
+                        // Refresh stats
+                        loadStats();
+                        
+                        // Show empty state if no words left
+                        if (pendingWords.length === 0) {
+                            displayWords();
+                        }
+                    }, 1500);
+                } else {
+                    showWordAlert(wordId, 'Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error skipping word:', error);
+                showWordAlert(wordId, 'Network error skipping word', 'error');
+            }
+        }
+
+        async function updateThreshold() {
+            const slider = document.getElementById('threshold-slider');
+            const newThreshold = parseFloat(slider.value);
+            
+            try {
+                const response = await fetch('/api/update-confidence-threshold', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        threshold: newThreshold
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showGlobalAlert('Confidence threshold updated successfully! ⚙️', 'success');
+                    loadStats(); // Refresh stats to show new threshold
+                } else {
+                    showGlobalAlert('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error updating threshold:', error);
+                showGlobalAlert('Network error updating threshold', 'error');
+            }
+        }
+
+        function showItemAlert(itemId, message, type) {
+            const alertContainer = document.getElementById(`alert-${itemId}`);
+            if (alertContainer) {
+                alertContainer.innerHTML = `
+                    <div class="alert alert-${type}">
+                        ${message}
+                    </div>
+                `;
+                
+                // Clear alert after 5 seconds
+                setTimeout(() => {
+                    alertContainer.innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        function showWordAlert(wordId, message, type) {
+            const alertContainer = document.getElementById(`word-alert-${wordId}`);
+            if (alertContainer) {
+                alertContainer.innerHTML = `
+                    <div class="alert alert-${type}">
+                        ${message}
+                    </div>
+                `;
+                
+                // Clear alert after 5 seconds
+                setTimeout(() => {
+                    alertContainer.innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        function showGlobalAlert(message, type) {
+            // Create a temporary alert at the top of the page
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `
+                <span style="font-weight: 600;">${type === 'success' ? '✅' : '❌'}</span>
+                ${message}
+            `;
+            alert.style.position = 'fixed';
+            alert.style.top = '20px';
+            alert.style.left = '50%';
+            alert.style.transform = 'translateX(-50%)';
+            alert.style.zIndex = '1000';
+            alert.style.maxWidth = '500px';
+            alert.style.minWidth = '300px';
+            
+            document.body.appendChild(alert);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                if (document.body.contains(alert)) {
+                    document.body.removeChild(alert);
+                }
+            }, 5000);
+        }
+
+        function showError(containerId, message) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = `
+                    <div class="alert alert-error">
+                        <strong>❌ Error:</strong> ${message}
+                        <button class="btn btn-secondary" onclick="${containerId === 'clips-container' ? 'loadPendingClips()' : 'loadPendingWords()'}" style="margin-left: 15px;">
+                            🔄 Retry
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadLocalModelInfo() {
+            try {
+                const response = await fetch('/api/local-model-info');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayLocalModelInfo(data.model_info);
+                } else {
+                    showLocalModelError('Failed to load model info: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error loading local model info:', error);
+                showLocalModelError('Network error loading model info');
+            }
+        }
+
+        function displayLocalModelInfo(modelInfo) {
+            const container = document.getElementById('local-model-info');
+            
+            if (!modelInfo.available) {
+                container.innerHTML = `
+                    <div class="alert alert-warning">
+                        <strong>⚠️ Local Model Unavailable</strong><br>
+                        ${modelInfo.error}
+                    </div>
+                `;
+                return;
+            }
+
+            const stats = modelInfo.stats;
+            const canTrain = modelInfo.can_train;
+            const recommendation = modelInfo.training_recommendation;
+
+            container.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <div>
+                        <strong>Training Samples:</strong><br>
+                        <span style="font-size: 1.5em; color: #00b894;">${stats.total_samples}</span>
+                    </div>
+                    <div>
+                        <strong>Model Status:</strong><br>
+                        <span style="color: ${stats.model_trained ? '#00b894' : '#e17055'};">
+                            ${stats.model_trained ? '✅ Trained' : '⏳ Not Trained'}
+                        </span>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>Recommendation:</strong><br>
+                    <span style="font-size: 0.9em; color: #666;">${recommendation}</span>
+                </div>
+                
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="trainLocalModel()" 
+                            ${!canTrain ? 'disabled' : ''} 
+                            style="flex: 1; min-width: 120px;">
+                        🎯 Train Model
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadLocalModelInfo()" 
+                            style="flex: 0 0 auto;">
+                        🔄 Refresh
+                    </button>
+                </div>
+                
+                ${stats.vosk_available ? 
+                    '<div style="margin-top: 10px; font-size: 0.8em; color: #00b894;">✅ Vosk offline model available</div>' : 
+                    '<div style="margin-top: 10px; font-size: 0.8em; color: #e17055;">ℹ️ Vosk model not found (optional)</div>'
+                }
+            `;
+        }
+
+        async function trainLocalModel() {
+            const container = document.getElementById('local-model-info');
+            
+            // Show training in progress
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="spinner" style="width: 30px; height: 30px;"></div>
+                    <p style="font-size: 0.9em;">Training local model...</p>
+                    <p style="font-size: 0.8em; color: #666;">This may take a few moments</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/train-local-model', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showGlobalAlert('Local model training completed successfully! 🤖', 'success');
+                    // Reload model info to show updated status
+                    setTimeout(() => {
+                        loadLocalModelInfo();
+                    }, 1000);
+                } else {
+                    showGlobalAlert('Error: ' + data.error, 'error');
+                    loadLocalModelInfo(); // Reload to show current state
+                }
+            } catch (error) {
+                console.error('Error training local model:', error);
+                showGlobalAlert('Network error training local model', 'error');
+                loadLocalModelInfo(); // Reload to show current state
+            }
+        }
+
+        function showLocalModelError(message) {
+            const container = document.getElementById('local-model-info');
+            container.innerHTML = `
+                <div class="alert alert-error">
+                    <strong>❌ Error:</strong> ${message}
+                    <button class="btn btn-secondary" onclick="loadLocalModelInfo()" style="margin-top: 10px; width: 100%;">
+                        🔄 Retry
+                    </button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
