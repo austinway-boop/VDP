@@ -47,12 +47,16 @@ class LaughterDetector:
             total_laughter_time = sum(seg['duration'] for seg in laughter_segments)
             laughter_percentage = (total_laughter_time / duration) * 100 if duration > 0 else 0
             
+            # Generate timeline data for graphing
+            timeline_data = self._generate_timeline_data(laughter_features, duration)
+            
             result = {
                 'audio_duration': duration,
                 'laughter_segments': laughter_segments,
                 'total_laughter_time': total_laughter_time,
                 'laughter_percentage': laughter_percentage,
                 'num_laughter_bursts': len(laughter_segments),
+                'timeline_data': timeline_data,
                 'analysis_method': 'audio_features'
             }
             
@@ -195,6 +199,62 @@ class LaughterDetector:
                 })
         
         return segments
+    
+    def _generate_timeline_data(self, features: Dict, duration: float) -> Dict:
+        """Generate timeline data for laughter visualization"""
+        try:
+            times = features['times']
+            laughter_scores = []
+            
+            # Calculate laughter scores for each time frame
+            for i in range(len(times)):
+                score = self._calculate_laughter_score(features, i)
+                laughter_scores.append(score)
+            
+            # Smooth the scores
+            try:
+                from scipy.ndimage import gaussian_filter1d
+                laughter_scores_smooth = gaussian_filter1d(np.array(laughter_scores), sigma=2)
+            except ImportError:
+                # Fallback: simple moving average
+                window_size = 5
+                laughter_scores_smooth = np.convolve(laughter_scores, 
+                                                   np.ones(window_size)/window_size, 
+                                                   mode='same')
+            
+            # Create timeline data points (sample every 0.1 seconds for smooth graph)
+            timeline_points = []
+            target_interval = 0.1  # 100ms intervals
+            
+            for target_time in np.arange(0, duration, target_interval):
+                # Find closest time index
+                closest_idx = np.argmin(np.abs(times - target_time)) if len(times) > 0 else 0
+                
+                if closest_idx < len(laughter_scores_smooth):
+                    laughter_intensity = float(laughter_scores_smooth[closest_idx])
+                else:
+                    laughter_intensity = 0.0
+                
+                timeline_points.append({
+                    'time': round(target_time, 2),
+                    'laughter_intensity': round(laughter_intensity, 3)
+                })
+            
+            return {
+                'points': timeline_points,
+                'max_intensity': float(np.max(laughter_scores_smooth)) if len(laughter_scores_smooth) > 0 else 0.0,
+                'avg_intensity': float(np.mean(laughter_scores_smooth)) if len(laughter_scores_smooth) > 0 else 0.0,
+                'sample_interval': target_interval
+            }
+            
+        except Exception as e:
+            print(f"❌ Error generating timeline data: {e}")
+            return {
+                'points': [],
+                'max_intensity': 0.0,
+                'avg_intensity': 0.0,
+                'sample_interval': 0.1
+            }
     
     def _calculate_laughter_score(self, features: Dict, frame_idx: int) -> float:
         """Calculate laughter likelihood score for a specific time frame"""

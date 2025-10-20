@@ -1877,11 +1877,6 @@ class AudioRecorder {
             
             if (result.success && result.result) {
                 console.log('Processing successful result:', result.result);
-                
-                // Store audio blob and laughter data for waveform
-                this.currentAudioBlob = wavBlob;
-                this.currentLaughterData = result.result.laughter_analysis;
-                
                 this.displayEmotionResults(result.result);
                 this.showStatus('Emotion analysis complete!', 'success');
                 
@@ -1916,15 +1911,6 @@ class AudioRecorder {
         console.log('DEBUG: transcription:', result.transcription);
         console.log('DEBUG: word_analysis length:', analysis ? (analysis.word_analysis ? analysis.word_analysis.length : 'missing') : 'no analysis');
         
-        // Safety check for emotion analysis
-        if (!analysis) {
-            console.error('ERROR: No emotion analysis data received');
-            this.elements.emotionAnalysis.style.display = 'block';
-            this.elements.transcriptionText.textContent = result.transcription || 'No speech detected';
-            this.elements.wordBreakdown.innerHTML = '<span class="no-words">No emotion analysis available</span>';
-            return;
-        }
-        
         // Show emotion analysis section
         this.elements.emotionAnalysis.style.display = 'block';
         
@@ -1939,7 +1925,6 @@ class AudioRecorder {
         this.displayConfidenceInfo(result.confidence, result.needs_review);
         
         // Display word-by-word analysis with color coding
-        console.log('DEBUG: About to display word breakdown with:', analysis.word_analysis);
         this.displayWordBreakdown(analysis.word_analysis || []);
         
         // Update primary emotion - use the highest probability emotion for accuracy
@@ -1978,13 +1963,6 @@ class AudioRecorder {
         
         // Display laughter analysis if available
         this.displayLaughterAnalysis(result.laughter_analysis, analysis.laughter_influence);
-        
-        // Display audio waveform with laughter highlighting
-        try {
-            this.displayAudioWaveform(this.currentAudioBlob, result.laughter_analysis);
-        } catch (error) {
-            console.error('Error displaying waveform:', error);
-        }
     }
 
     displayLaughterAnalysis(laughterData, laughterInfluence) {
@@ -2012,11 +1990,15 @@ class AudioRecorder {
         const totalTime = laughterData.total_laughter_time || 0;
         const percentage = laughterData.laughter_percentage || 0;
         const numBursts = segments.length;
+        const duration = laughterData.audio_duration || 0;
         
         laughterSummary.innerHTML = `
             <strong>😄 ${numBursts} laughter burst${numBursts !== 1 ? 's' : ''} detected</strong><br>
             ⏱️ Total laughter: ${totalTime.toFixed(1)}s (${percentage.toFixed(1)}% of audio)
         `;
+        
+        // Draw laughter timeline graph
+        this.drawLaughterGraph(laughterData);
         
         // Create timeline visualization in word-analysis style
         const laughterSegmentsHtml = segments.map((segment, index) => `
@@ -2058,49 +2040,32 @@ class AudioRecorder {
         console.log('DEBUG: Displayed laughter analysis:', laughterData);
     }
 
-    async displayAudioWaveform(audioBlob, laughterData) {
-        const waveformSection = document.getElementById('audioWaveformSection');
-        const canvas = document.getElementById('waveformCanvas');
-        const playBtn = document.getElementById('playWaveformBtn');
-        const timeDisplay = document.getElementById('waveformTime');
+    drawLaughterGraph(laughterData) {
+        const canvas = document.getElementById('laughterGraph');
+        const graphContainer = document.getElementById('laughterGraphContainer');
+        const maxTimeLabel = document.getElementById('maxTimeLabel');
         
-        if (!waveformSection || !canvas || !audioBlob) {
+        if (!canvas || !laughterData.timeline_data) {
+            if (graphContainer) graphContainer.style.display = 'none';
             return;
         }
-        
-        try {
-            // Show waveform section
-            waveformSection.style.display = 'block';
-            
-            // Create audio context for analysis
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const arrayBuffer = await audioBlob.arrayBuffer();
-            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-            
-            // Get audio data
-            const audioData = audioBuffer.getChannelData(0); // Use first channel
-            const sampleRate = audioBuffer.sampleRate;
-            const duration = audioBuffer.duration;
-            
-            console.log(`🎵 Audio waveform: ${duration.toFixed(2)}s, ${sampleRate}Hz, ${audioData.length} samples`);
-            
-            // Draw waveform
-            this.drawWaveform(canvas, audioData, laughterData, duration);
-            
-            // Update time display
-            timeDisplay.textContent = `0:00 / ${this.formatTime(duration)}`;
-            
-            // Enable play button
-            playBtn.disabled = false;
-            playBtn.onclick = () => this.playAudioWithWaveform(audioBlob, canvas, audioData, duration);
-            
-        } catch (error) {
-            console.error('Error creating waveform:', error);
-            waveformSection.style.display = 'none';
-        }
-    }
 
-    drawWaveform(canvas, audioData, laughterData, duration) {
+        const timelineData = laughterData.timeline_data;
+        const points = timelineData.points || [];
+        
+        if (points.length === 0) {
+            if (graphContainer) graphContainer.style.display = 'none';
+            return;
+        }
+
+        // Show graph container
+        if (graphContainer) graphContainer.style.display = 'block';
+        
+        // Update time label
+        if (maxTimeLabel) {
+            maxTimeLabel.textContent = `${laughterData.audio_duration.toFixed(1)}s`;
+        }
+
         const ctx = canvas.getContext('2d');
         const width = canvas.width;
         const height = canvas.height;
@@ -2108,162 +2073,146 @@ class AudioRecorder {
         // Clear canvas
         ctx.clearRect(0, 0, width, height);
         
-        // Set up drawing
-        ctx.fillStyle = '#f8f9fa';
-        ctx.fillRect(0, 0, width, height);
+        // Set up drawing parameters
+        const padding = 20;
+        const graphWidth = width - (padding * 2);
+        const graphHeight = height - (padding * 2);
+        const maxTime = laughterData.audio_duration;
+        const maxIntensity = timelineData.max_intensity || 1.0;
         
-        // Draw center line
-        ctx.strokeStyle = '#dee2e6';
+        // Draw background grid
+        ctx.strokeStyle = '#e9ecef';
         ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(0, height / 2);
-        ctx.lineTo(width, height / 2);
-        ctx.stroke();
         
-        // Draw time markers
-        ctx.fillStyle = '#6c757d';
-        ctx.font = '10px Arial';
-        const timeMarkers = 5;
-        for (let i = 0; i <= timeMarkers; i++) {
-            const x = (i / timeMarkers) * width;
-            const time = (i / timeMarkers) * duration;
-            ctx.fillText(this.formatTime(time), x - 10, height - 5);
-            
-            // Draw marker line
-            ctx.strokeStyle = '#e9ecef';
+        // Vertical grid lines (time)
+        const timeSteps = Math.min(10, Math.ceil(maxTime));
+        for (let i = 0; i <= timeSteps; i++) {
+            const x = padding + (i / timeSteps) * graphWidth;
             ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, height - 15);
+            ctx.moveTo(x, padding);
+            ctx.lineTo(x, height - padding);
             ctx.stroke();
         }
         
-        // Draw waveform
-        const samplesPerPixel = audioData.length / width;
-        ctx.strokeStyle = '#03a9f4';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        
-        for (let x = 0; x < width; x++) {
-            const startSample = Math.floor(x * samplesPerPixel);
-            const endSample = Math.floor((x + 1) * samplesPerPixel);
-            
-            // Get RMS for this pixel
-            let sum = 0;
-            for (let i = startSample; i < endSample && i < audioData.length; i++) {
-                sum += audioData[i] * audioData[i];
-            }
-            const rms = Math.sqrt(sum / (endSample - startSample));
-            
-            // Convert to pixel height
-            const amplitude = rms * height * 0.8; // Scale to 80% of canvas height
-            const y = height / 2;
-            
-            // Draw waveform line
-            ctx.moveTo(x, y - amplitude);
-            ctx.lineTo(x, y + amplitude);
-        }
-        ctx.stroke();
-        
-        // Highlight laughter segments
-        if (laughterData && laughterData.laughter_segments && Array.isArray(laughterData.laughter_segments)) {
-            this.drawLaughterHighlights(ctx, laughterData.laughter_segments, width, height, duration);
-        }
-    }
-
-    drawLaughterHighlights(ctx, laughterSegments, width, height, duration) {
-        if (!Array.isArray(laughterSegments) || laughterSegments.length === 0) {
-            return;
+        // Horizontal grid lines (intensity)
+        for (let i = 0; i <= 4; i++) {
+            const y = padding + (i / 4) * graphHeight;
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(width - padding, y);
+            ctx.stroke();
         }
         
-        laughterSegments.forEach(segment => {
-            if (!segment || typeof segment.start_time !== 'number' || typeof segment.end_time !== 'number') {
-                console.warn('Invalid laughter segment:', segment);
-                return;
+        // Draw laughter intensity line
+        if (points.length > 1) {
+            ctx.strokeStyle = '#f1c40f';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            ctx.beginPath();
+            
+            for (let i = 0; i < points.length; i++) {
+                const point = points[i];
+                const x = padding + (point.time / maxTime) * graphWidth;
+                const y = height - padding - (point.laughter_intensity / maxIntensity) * graphHeight;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
             }
             
-            const startX = (segment.start_time / duration) * width;
-            const endX = (segment.end_time / duration) * width;
-            const segmentWidth = endX - startX;
+            ctx.stroke();
             
-            // Draw laughter highlight
-            ctx.fillStyle = 'rgba(255, 193, 7, 0.3)'; // Semi-transparent yellow
-            ctx.fillRect(startX, 0, segmentWidth, height);
+            // Fill area under the curve
+            ctx.fillStyle = 'rgba(241, 196, 15, 0.2)';
+            ctx.lineTo(width - padding, height - padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // Draw laughter segment highlights
+        const segments = laughterData.laughter_segments || [];
+        segments.forEach(segment => {
+            const startX = padding + (segment.start_time / maxTime) * graphWidth;
+            const endX = padding + (segment.end_time / maxTime) * graphWidth;
             
-            // Draw laughter border
+            // Draw highlight rectangle
+            ctx.fillStyle = 'rgba(255, 193, 7, 0.4)';
+            ctx.fillRect(startX, padding, endX - startX, graphHeight);
+            
+            // Draw segment borders
             ctx.strokeStyle = '#ffc107';
             ctx.lineWidth = 2;
-            ctx.strokeRect(startX, 0, segmentWidth, height);
-            
-            // Add laughter emoji at the top
-            ctx.fillStyle = '#856404';
-            ctx.font = 'bold 16px Arial';
-            ctx.fillText('😄', startX + segmentWidth / 2 - 8, 20);
-            
-            // Add confidence text
-            ctx.fillStyle = '#856404';
-            ctx.font = '10px Arial';
-            const confText = `${Math.round(segment.confidence * 100)}%`;
-            ctx.fillText(confText, startX + 2, height - 5);
+            ctx.beginPath();
+            ctx.moveTo(startX, padding);
+            ctx.lineTo(startX, height - padding);
+            ctx.moveTo(endX, padding);
+            ctx.lineTo(endX, height - padding);
+            ctx.stroke();
         });
+        
+        // Add axis labels
+        ctx.fillStyle = '#495057';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        
+        // Y-axis label
+        ctx.save();
+        ctx.translate(12, height / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('Laughter Intensity', 0, 0);
+        ctx.restore();
+        
+        // X-axis label
+        ctx.fillText('Time (seconds)', width / 2, height - 5);
+        
+        // Add hover functionality
+        this.setupGraphHover(canvas, laughterData);
     }
 
-    playAudioWithWaveform(audioBlob, canvas, audioData, duration) {
-        const audio = new Audio();
-        audio.src = URL.createObjectURL(audioBlob);
+    setupGraphHover(canvas, laughterData) {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'graph-tooltip';
+        document.body.appendChild(tooltip);
         
-        // Create playback position indicator
-        const ctx = canvas.getContext('2d');
-        let animationFrame;
-        
-        const updatePosition = () => {
-            if (!audio.paused) {
-                // Redraw waveform
-                this.drawWaveform(canvas, audioData, this.currentLaughterData, duration);
-                
-                // Draw playback position
-                const currentTime = audio.currentTime;
-                const x = (currentTime / duration) * canvas.width;
-                
-                ctx.strokeStyle = '#dc3545';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
-                
-                // Update time display
-                document.getElementById('waveformTime').textContent = 
-                    `${this.formatTime(currentTime)} / ${this.formatTime(duration)}`;
-                
-                animationFrame = requestAnimationFrame(updatePosition);
+        canvas.addEventListener('mousemove', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            // Convert pixel coordinates to time
+            const padding = 20;
+            const graphWidth = canvas.width - (padding * 2);
+            const relativeX = (x - padding) / graphWidth;
+            const time = relativeX * laughterData.audio_duration;
+            
+            if (time >= 0 && time <= laughterData.audio_duration) {
+                // Find closest timeline point
+                const timelineData = laughterData.timeline_data;
+                if (timelineData && timelineData.points) {
+                    const closestPoint = timelineData.points.reduce((prev, curr) => 
+                        Math.abs(curr.time - time) < Math.abs(prev.time - time) ? curr : prev
+                    );
+                    
+                    // Show tooltip
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = (event.clientX + 10) + 'px';
+                    tooltip.style.top = (event.clientY - 40) + 'px';
+                    tooltip.innerHTML = `
+                        Time: ${closestPoint.time.toFixed(1)}s<br>
+                        Laughter: ${(closestPoint.laughter_intensity * 100).toFixed(1)}%
+                    `;
+                }
             }
-        };
+        });
         
-        audio.onplay = () => {
-            updatePosition();
-        };
-        
-        audio.onpause = () => {
-            if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-            }
-        };
-        
-        audio.onended = () => {
-            if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-            }
-            // Reset position
-            document.getElementById('waveformTime').textContent = `0:00 / ${this.formatTime(duration)}`;
-        };
-        
-        audio.play();
-    }
-
-    formatTime(seconds) {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
+        canvas.addEventListener('mouseleave', () => {
+            tooltip.style.display = 'none';
+        });
     }
 
     displayWordBreakdown(wordAnalysis) {
@@ -2271,8 +2220,7 @@ class AudioRecorder {
         
         this.elements.wordBreakdown.innerHTML = '';
         
-        // Add safety check for undefined wordAnalysis
-        if (!wordAnalysis || !Array.isArray(wordAnalysis) || wordAnalysis.length === 0) {
+        if (!wordAnalysis || wordAnalysis.length === 0) {
             this.elements.wordBreakdown.innerHTML = '<span class="no-words">No words to analyze (Debug: wordAnalysis=' + (wordAnalysis ? wordAnalysis.length : 'null') + ')</span>';
             console.log('DEBUG: wordAnalysis is empty or null:', wordAnalysis);
             return;

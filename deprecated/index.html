@@ -146,29 +146,25 @@
                 </div>
             </div>
             
-            <!-- Audio Waveform Visualization -->
-            <div class="audio-waveform-section" id="audioWaveformSection" style="display:none;">
-                <h4>🎵 Audio Waveform</h4>
-                <div class="waveform-container">
-                    <canvas id="waveformCanvas" width="800" height="150"></canvas>
-                    <div class="waveform-controls">
-                        <button class="btn btn-secondary" id="playWaveformBtn" disabled>▶️ Play</button>
-                        <span class="waveform-time" id="waveformTime">0:00 / 0:00</span>
-                    </div>
-                </div>
-                <div class="waveform-legend">
-                    <span class="legend-item waveform-audio">🎵 Audio</span>
-                    <span class="legend-item waveform-laughter">😄 Laughter</span>
-                    <span class="legend-item waveform-speech">🗣️ Speech</span>
-                </div>
-            </div>
-
             <!-- Laughter Analysis Section -->
             <div class="laughter-analysis" id="laughterAnalysis" style="display:none;">
                 <h4>😄 Laughter Detection</h4>
                 <div class="laughter-summary" id="laughterSummary">
                     No laughter detected
                 </div>
+                
+                <!-- Laughter Timeline Graph -->
+                <div class="laughter-graph-container" id="laughterGraphContainer" style="display:none;">
+                    <h5>📊 Laughter Timeline</h5>
+                    <div class="graph-wrapper">
+                        <canvas id="laughterGraph" width="600" height="120"></canvas>
+                        <div class="graph-labels">
+                            <span class="time-label">0s</span>
+                            <span class="time-label" style="float: right;" id="maxTimeLabel">10s</span>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="laughter-timeline" id="laughterTimeline">
                     <!-- Laughter segments will be shown here -->
                 </div>
