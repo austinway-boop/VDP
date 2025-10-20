@@ -981,6 +981,80 @@ button:hover {
     border-color: #f1c40f;
 }
 
+/* Waveform Visualization Styles */
+.waveform-analysis {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.waveform-analysis h4 {
+    margin: 0 0 15px 0;
+    color: #495057;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.waveform-container {
+    position: relative;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 15px;
+    border: 2px solid #e9ecef;
+}
+
+#waveformCanvas {
+    width: 100%;
+    max-width: 800px;
+    height: 150px;
+    border-radius: 6px;
+    background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 50%, #f8f9fa 100%);
+    cursor: pointer;
+}
+
+.waveform-legend {
+    display: flex;
+    gap: 15px;
+    margin-top: 12px;
+    justify-content: center;
+}
+
+.waveform-legend-item {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-weight: 500;
+    border: 1px solid;
+}
+
+.waveform-legend-item.audio {
+    background: #e3f2fd;
+    color: #1976d2;
+    border-color: #2196f3;
+}
+
+.waveform-legend-item.laughter {
+    background: #fff3cd;
+    color: #856404;
+    border-color: #f1c40f;
+}
+
+.waveform-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #6c757d;
+}
+
+.waveform-time {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
 .audio-info {
     background: #f0f8ff;
     border: 1px solid #b3d9ff;

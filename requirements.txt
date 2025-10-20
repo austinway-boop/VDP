@@ -18,6 +18,9 @@ soundfile>=0.10.0
 # Laughter detection
 scipy>=1.7.0
 
+# Enhanced speech recognition
+openai-whisper>=20230918
+
 # Web server dependencies  
 requests>=2.25.0
 pathlib2>=2.3.0

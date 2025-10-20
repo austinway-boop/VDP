@@ -189,7 +189,10 @@ class EnhancedSpeechAnalyzer:
             file_size = os.path.getsize(audio_file_path)
             print(f"Audio file size: {file_size} bytes")
             
-            if file_size < 100:  # Very small file, likely empty
+            if file_size < 1000:  # Lowered threshold - very small files might still have speech
+                print(f"⚠️ Audio file quite small ({file_size} bytes) - may have recognition issues")
+            
+            if file_size < 100:  # Only reject extremely small files
                 print("Audio file too small, likely empty")
                 return "", 0.0, {"error": "File too small"}
             
@@ -211,19 +214,39 @@ class EnhancedSpeechAnalyzer:
             with sr.AudioFile(audio_file_path) as source:
                 print(f"Audio file info - Duration: {source.DURATION}, Sample rate: {source.SAMPLE_RATE}")
                 
-                # Adjust for ambient noise with shorter duration for short clips
-                self.recognizer.adjust_for_ambient_noise(source, duration=0.2)
+                # Enhanced audio preprocessing for better recognition
+                if source.DURATION < 1.0:
+                    # Very short clips - minimal noise adjustment
+                    self.recognizer.adjust_for_ambient_noise(source, duration=0.1)
+                elif source.DURATION < 5.0:
+                    # Short clips - quick noise adjustment  
+                    self.recognizer.adjust_for_ambient_noise(source, duration=0.2)
+                else:
+                    # Longer clips - more thorough noise adjustment
+                    self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
+                
+                # Adjust recognizer settings for better accuracy
+                self.recognizer.energy_threshold = 200  # Even lower threshold for quiet speech
+                self.recognizer.dynamic_energy_threshold = True
+                self.recognizer.pause_threshold = 0.5  # Shorter pause detection for better capture
+                self.recognizer.phrase_threshold = 0.3  # Lower phrase threshold
+                self.recognizer.non_speaking_duration = 0.5  # Shorter non-speaking duration
                 
                 # Record the audio
                 audio_data = self.recognizer.record(source)
-                print(f"Audio data recorded, attempting recognition...")
+                print(f"Audio data recorded, attempting recognition with enhanced settings...")
                 
                 transcription_results = []
                 
                 # Try multiple recognition services and collect results
                 try:
-                    # Google Speech Recognition
-                    text = self.recognizer.recognize_google(audio_data, language='en-US', show_all=True)
+                    # Google Speech Recognition with enhanced parameters
+                    text = self.recognizer.recognize_google(
+                        audio_data, 
+                        language='en-US', 
+                        show_all=True,
+                        with_confidence=True
+                    )
                     if isinstance(text, dict) and 'alternative' in text:
                         # Google returns confidence scores in full response
                         best_result = text['alternative'][0]
@@ -246,22 +269,81 @@ class EnhancedSpeechAnalyzer:
                         print(f"Google recognition: '{google_text}' (default confidence: {google_confidence:.2f})")
                         
                 except sr.UnknownValueError:
-                    print("Google couldn't understand audio")
+                    print("Google couldn't understand audio - trying with different settings...")
+                    # Try again with different parameters and languages
+                    fallback_attempts = [
+                        {'language': 'en-US', 'name': 'US English'},
+                        {'language': 'en-GB', 'name': 'UK English'},
+                        {'language': 'en', 'name': 'Generic English'},
+                    ]
+                    
+                    for attempt in fallback_attempts:
+                        try:
+                            simple_text = self.recognizer.recognize_google(
+                                audio_data, 
+                                language=attempt['language']
+                            )
+                            if simple_text and simple_text.strip():
+                                transcription_results.append({
+                                    "service": f"google_{attempt['language']}",
+                                    "text": simple_text.lower(),
+                                    "confidence": 0.6
+                                })
+                                print(f"✅ Google {attempt['name']}: '{simple_text.lower()}'")
+                                break
+                        except:
+                            print(f"❌ Google {attempt['name']} failed")
+                    
+                    if not transcription_results:
+                        print("🔍 Google recognition completely failed - checking audio quality...")
+                        # Audio quality diagnostics
+                        try:
+                            import numpy as np
+                            audio_array = np.frombuffer(audio_data.get_raw_data(), dtype=np.int16)
+                            audio_level = np.sqrt(np.mean(audio_array**2))
+                            print(f"📊 Audio level: {audio_level:.2f} (should be >100 for clear speech)")
+                            if audio_level < 50:
+                                print("⚠️ Audio level very low - try speaking louder or closer to microphone")
+                            elif audio_level > 10000:
+                                print("⚠️ Audio level very high - may be clipping or distorted")
+                        except:
+                            print("Could not analyze audio quality")
                 except sr.RequestError as e:
                     print(f"Google recognition error: {e}")
                 
-                # Try Sphinx as fallback
+                # Try Sphinx as fallback (if available)
                 try:
                     sphinx_text = self.recognizer.recognize_sphinx(audio_data).lower()
-                    sphinx_confidence = 0.6  # Sphinx typically less accurate
-                    transcription_results.append({
-                        "service": "sphinx",
-                        "text": sphinx_text, 
-                        "confidence": sphinx_confidence
-                    })
-                    print(f"Sphinx recognition: '{sphinx_text}' (confidence: {sphinx_confidence:.2f})")
-                except:
-                    print("Sphinx recognition failed")
+                    if sphinx_text and sphinx_text.strip():
+                        sphinx_confidence = 0.6  # Sphinx typically less accurate
+                        transcription_results.append({
+                            "service": "sphinx",
+                            "text": sphinx_text, 
+                            "confidence": sphinx_confidence
+                        })
+                        print(f"✅ Sphinx recognition: '{sphinx_text}' (confidence: {sphinx_confidence:.2f})")
+                except Exception as e:
+                    print(f"❌ Sphinx recognition failed: {e}")
+                
+                # If still no results, try more aggressive Google settings
+                if not transcription_results:
+                    print("🔄 No recognition results yet - trying aggressive Google settings...")
+                    try:
+                        # Try with very liberal settings
+                        aggressive_text = self.recognizer.recognize_google(
+                            audio_data, 
+                            language='en',
+                            show_all=False  # Just get the best guess
+                        )
+                        if aggressive_text and aggressive_text.strip():
+                            transcription_results.append({
+                                "service": "google_aggressive",
+                                "text": aggressive_text.lower(),
+                                "confidence": 0.4  # Lower confidence since we're being aggressive
+                            })
+                            print(f"🎯 Google aggressive: '{aggressive_text.lower()}'")
+                    except Exception as e:
+                        print(f"❌ Google aggressive failed: {e}")
                 
                 # Select best result
                 if not transcription_results:

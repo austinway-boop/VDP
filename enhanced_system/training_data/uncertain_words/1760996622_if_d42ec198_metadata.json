@@ -1,0 +1,36 @@
+{
+  "word_id": "1760996622_if_d42ec198",
+  "original_word": "if",
+  "clean_word": "if",
+  "word_index": 7,
+  "total_words": 11,
+  "full_text": "testing if this is working we'll see if it doesn't work",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmprhiispy4.wav",
+  "timestamp": 1760996622,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "google",
+    "service_confidence": 0.64062399,
+    "estimated_confidence": 0.8672727272727274,
+    "final_confidence": 0.731283484909091,
+    "audio_hash": "99c7110efb7ffd996f58f79d58ce9a7e",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "testing if this is working we'll see if it doesn't work",
+        "confidence": 0.64062399
+      }
+    ]
+  },
+  "estimated_position": "Word 8 of 11",
+  "context": {
+    "before": "we'll see",
+    "target": "if",
+    "after": "it doesn't",
+    "full_context": "we'll see if it doesn't"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}
