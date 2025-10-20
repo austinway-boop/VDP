@@ -300,24 +300,14 @@ class EnhancedSpeechAnalyzer:
                         try:
                             import numpy as np
                             audio_array = np.frombuffer(audio_data.get_raw_data(), dtype=np.int16)
-                            if len(audio_array) > 0:
-                                # Calculate RMS audio level
-                                audio_level = np.sqrt(np.mean(np.square(audio_array.astype(np.float64))))
-                                print(f"📊 Audio level: {audio_level:.2f} (should be >100 for clear speech)")
-                                print(f"📊 Audio samples: {len(audio_array)}, Duration: {len(audio_array)/16000:.2f}s")
-                                
-                                if audio_level < 50:
-                                    print("⚠️ Audio level very low - try speaking louder or closer to microphone")
-                                elif audio_level > 10000:
-                                    print("⚠️ Audio level very high - may be clipping or distorted")
-                                elif np.isnan(audio_level):
-                                    print("⚠️ Audio data corrupted or invalid")
-                                else:
-                                    print("📊 Audio level seems reasonable - may be speech clarity issue")
-                            else:
-                                print("❌ No audio data found in file")
-                        except Exception as e:
-                            print(f"Could not analyze audio quality: {e}")
+                            audio_level = np.sqrt(np.mean(audio_array**2))
+                            print(f"📊 Audio level: {audio_level:.2f} (should be >100 for clear speech)")
+                            if audio_level < 50:
+                                print("⚠️ Audio level very low - try speaking louder or closer to microphone")
+                            elif audio_level > 10000:
+                                print("⚠️ Audio level very high - may be clipping or distorted")
+                        except:
+                            print("Could not analyze audio quality")
                 except sr.RequestError as e:
                     print(f"Google recognition error: {e}")
                 
@@ -687,38 +677,16 @@ class EnhancedSpeechAnalyzer:
         
         if not text:
             print("No speech detected or transcription failed")
-            
-            # Still try laughter detection even if no speech detected
-            laughter_analysis = {}
-            if LAUGHTER_DETECTION_AVAILABLE:
-                try:
-                    print("🔍 Checking for laughter even without speech recognition...")
-                    laughter_analysis = detect_laughter_in_audio(audio_file_path)
-                    if laughter_analysis.get('laughter_segments'):
-                        print(f"😄 Found laughter without speech: {len(laughter_analysis['laughter_segments'])} segments")
-                    else:
-                        print("😐 No laughter detected")
-                except Exception as e:
-                    print(f"⚠️ Laughter detection error: {e}")
-                    laughter_analysis = {'error': str(e)}
-            else:
-                laughter_analysis = {'error': 'Laughter detection not available'}
-            
             return {
                 "transcription": "",
                 "confidence": 0.0,
                 "metadata": metadata,
                 "emotion_analysis": self.get_neutral_emotion_result(""),
-                "laughter_analysis": laughter_analysis,
+                "laughter_analysis": {"error": "No audio to analyze"},
                 "processing_time": 0,
                 "success": False,
-                "error": metadata.get("error", "Speech recognition failed - check audio quality and microphone"),
-                "needs_review": False,
-                "audio_diagnostics": {
-                    "file_size": metadata.get("file_size", 0),
-                    "duration": metadata.get("duration", 0),
-                    "suggestion": "Try speaking louder, closer to microphone, or in a quieter environment"
-                }
+                "error": metadata.get("error", "Unknown error"),
+                "needs_review": False
             }
         
         print(f"Transcribed text: '{text}' (confidence: {confidence:.2f})")

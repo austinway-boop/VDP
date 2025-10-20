@@ -127,19 +127,15 @@ class LaughterDetector:
         laughter_scores = np.array(laughter_scores)
         
         # Smooth the scores to reduce noise
+        from scipy.ndimage import gaussian_filter1d
         try:
-            from scipy.ndimage import gaussian_filter1d
             laughter_scores_smooth = gaussian_filter1d(laughter_scores, sigma=2)
         except ImportError:
-            print("⚠️ SciPy not available, using simple smoothing")
             # Fallback: simple moving average if scipy not available
             window_size = 5
-            if len(laughter_scores) >= window_size:
-                laughter_scores_smooth = np.convolve(laughter_scores, 
-                                                   np.ones(window_size)/window_size, 
-                                                   mode='same')
-            else:
-                laughter_scores_smooth = laughter_scores
+            laughter_scores_smooth = np.convolve(laughter_scores, 
+                                               np.ones(window_size)/window_size, 
+                                               mode='same')
         
         # Find segments above threshold
         laughter_mask = laughter_scores_smooth > self.laughter_threshold

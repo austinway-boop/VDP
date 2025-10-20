@@ -147,14 +147,19 @@
             </div>
             
             <!-- Audio Waveform Visualization -->
-            <div class="waveform-analysis" id="waveformAnalysis" style="display:none;">
+            <div class="audio-waveform-section" id="audioWaveformSection" style="display:none;">
                 <h4>🎵 Audio Waveform</h4>
                 <div class="waveform-container">
                     <canvas id="waveformCanvas" width="800" height="150"></canvas>
-                    <div class="waveform-legend">
-                        <span class="waveform-legend-item audio">🎵 Audio Signal</span>
-                        <span class="waveform-legend-item laughter">😄 Laughter Segments</span>
+                    <div class="waveform-controls">
+                        <button class="btn btn-secondary" id="playWaveformBtn" disabled>▶️ Play</button>
+                        <span class="waveform-time" id="waveformTime">0:00 / 0:00</span>
                     </div>
+                </div>
+                <div class="waveform-legend">
+                    <span class="legend-item waveform-audio">🎵 Audio</span>
+                    <span class="legend-item waveform-laughter">😄 Laughter</span>
+                    <span class="legend-item waveform-speech">🗣️ Speech</span>
                 </div>
             </div>
 

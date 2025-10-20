@@ -4,7 +4,6 @@ class AudioRecorder {
         this.mediaRecorder = null;
         this.isRecording = false;
         this.audioBuffer = null;
-        this.currentAudioBuffer = null;  // For waveform visualization
         this.audioSource = null;
         this.isPlaying = false;
         this.startTime = 0;
@@ -1876,11 +1875,12 @@ class AudioRecorder {
             const result = await response.json();
             console.log('Full API Response:', result);
             
-            // Store audio buffer for waveform visualization regardless of success
-            this.currentAudioBuffer = this.audioBuffer;
-            
             if (result.success && result.result) {
                 console.log('Processing successful result:', result.result);
+                
+                // Store audio blob and laughter data for waveform
+                this.currentAudioBlob = wavBlob;
+                this.currentLaughterData = result.result.laughter_analysis;
                 
                 this.displayEmotionResults(result.result);
                 this.showStatus('Emotion analysis complete!', 'success');
@@ -1896,16 +1896,7 @@ class AudioRecorder {
                 }
             } else {
                 console.error('API Error:', result);
-                
-                // Even if speech recognition failed, try to show laughter and waveform
-                if (result.result) {
-                    console.log('Showing partial results despite speech recognition failure');
-                    this.displayPartialResults(result.result);
-                }
-                
-                const errorMsg = result.result?.error || result.error || 'Unknown error';
-                const suggestion = result.result?.audio_diagnostics?.suggestion || '';
-                this.showStatus(`Speech recognition failed: ${errorMsg}. ${suggestion}`, 'error');
+                this.showStatus(`Analysis failed: ${result.error || 'Unknown error'}`, 'error');
             }
 
         } catch (error) {
@@ -1975,9 +1966,11 @@ class AudioRecorder {
         console.log('DEBUG: Creating emotion bars with:', analysis.emotions);
         this.createEmotionBars(analysis.emotions);
         
-        // Display laughter analysis and waveform if available
+        // Display laughter analysis if available
         this.displayLaughterAnalysis(result.laughter_analysis, analysis.laughter_influence);
-        this.displayWaveformWithLaughter(result.laughter_analysis);
+        
+        // Display audio waveform with laughter highlighting
+        this.displayAudioWaveform(this.currentAudioBlob, result.laughter_analysis);
     }
 
     displayLaughterAnalysis(laughterData, laughterInfluence) {
@@ -2051,51 +2044,13 @@ class AudioRecorder {
         console.log('DEBUG: Displayed laughter analysis:', laughterData);
     }
 
-    displayPartialResults(result) {
-        console.log('DEBUG: Displaying partial results:', result);
-        
-        // Show the emotion analysis section even if speech failed
-        this.elements.emotionAnalysis.style.display = 'block';
-        
-        // Update transcription with error message
-        this.elements.transcriptionText.textContent = result.transcription || 'Speech recognition failed';
-        
-        // Hide confidence info since we don't have good transcription
-        this.elements.confidenceInfo.style.display = 'none';
-        
-        // Still show laughter analysis and waveform if available
-        this.displayLaughterAnalysis(result.laughter_analysis);
-        this.displayWaveformWithLaughter(result.laughter_analysis);
-        
-        // Show neutral emotions
-        const neutralEmotions = {
-            'joy': 0.125, 'trust': 0.125, 'anticipation': 0.125, 'surprise': 0.125,
-            'anger': 0.125, 'fear': 0.125, 'sadness': 0.125, 'disgust': 0.125
-        };
-        this.createEmotionBars(neutralEmotions);
-        
-        // Update primary emotion to neutral
-        this.elements.emotionIcon.textContent = '😐';
-        this.elements.emotionName.textContent = 'Speech Not Detected';
-        this.elements.emotionConfidence.textContent = '0%';
-        
-        // Clear word breakdown
-        if (this.elements.wordBreakdown) {
-            this.elements.wordBreakdown.innerHTML = '<em>No words detected - check audio quality</em>';
-        }
-    }
-
-    displayWaveformWithLaughter(laughterData) {
-        const waveformSection = document.getElementById('waveformAnalysis');
+    async displayAudioWaveform(audioBlob, laughterData) {
+        const waveformSection = document.getElementById('audioWaveformSection');
         const canvas = document.getElementById('waveformCanvas');
+        const playBtn = document.getElementById('playWaveformBtn');
+        const timeDisplay = document.getElementById('waveformTime');
         
-        if (!canvas) {
-            console.log('DEBUG: Canvas not found for waveform');
-            return;
-        }
-        
-        if (!this.currentAudioBuffer) {
-            console.log('DEBUG: No audio buffer available for waveform');
+        if (!waveformSection || !canvas || !audioBlob) {
             return;
         }
         
@@ -2103,201 +2058,189 @@ class AudioRecorder {
             // Show waveform section
             waveformSection.style.display = 'block';
             
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
+            // Create audio context for analysis
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const arrayBuffer = await audioBlob.arrayBuffer();
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
             
-            // Clear canvas
-            ctx.clearRect(0, 0, width, height);
+            // Get audio data
+            const audioData = audioBuffer.getChannelData(0); // Use first channel
+            const sampleRate = audioBuffer.sampleRate;
+            const duration = audioBuffer.duration;
             
-            // Safely get audio data with error checking
-            if (this.currentAudioBuffer.numberOfChannels === 0) {
-                console.log('DEBUG: Audio buffer has no channels');
-                this.drawEmptyWaveform(ctx, width, height);
-                return;
-            }
-            
-            const audioData = this.currentAudioBuffer.getChannelData(0); // Get first channel
-            const duration = this.currentAudioBuffer.duration;
-            const sampleRate = this.currentAudioBuffer.sampleRate;
-            
-            if (!audioData || audioData.length === 0) {
-                console.log('DEBUG: No audio data in buffer');
-                this.drawEmptyWaveform(ctx, width, height);
-                return;
-            }
-            
-            console.log(`DEBUG: Drawing waveform - Duration: ${duration}s, Samples: ${audioData.length}`);
+            console.log(`🎵 Audio waveform: ${duration.toFixed(2)}s, ${sampleRate}Hz, ${audioData.length} samples`);
             
             // Draw waveform
-            this.drawWaveform(ctx, audioData, width, height, duration);
+            this.drawWaveform(canvas, audioData, laughterData, duration);
             
-            // Highlight laughter segments if available
-            if (laughterData && laughterData.laughter_segments && laughterData.laughter_segments.length > 0) {
-                this.highlightLaughterSegments(ctx, laughterData.laughter_segments, width, height, duration);
-                console.log(`DEBUG: Highlighted ${laughterData.laughter_segments.length} laughter segments`);
-            }
+            // Update time display
+            timeDisplay.textContent = `0:00 / ${this.formatTime(duration)}`;
             
-            console.log('DEBUG: Drew waveform with laughter highlights successfully');
+            // Enable play button
+            playBtn.disabled = false;
+            playBtn.onclick = () => this.playAudioWithWaveform(audioBlob, canvas, audioData, duration);
             
         } catch (error) {
-            console.error('ERROR: Failed to draw waveform:', error);
-            this.drawErrorWaveform(canvas.getContext('2d'), canvas.width, canvas.height, error.message);
+            console.error('Error creating waveform:', error);
+            waveformSection.style.display = 'none';
         }
     }
-    
-    drawWaveform(ctx, audioData, width, height, duration) {
-        if (!audioData || audioData.length === 0) {
-            console.log('DEBUG: audioData is empty or undefined');
-            this.drawEmptyWaveform(ctx, width, height);
-            return;
-        }
+
+    drawWaveform(canvas, audioData, laughterData, duration) {
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
         
-        const centerY = height / 2;
-        const samplesPerPixel = Math.max(1, Math.floor(audioData.length / width));
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
+        
+        // Set up drawing
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fillRect(0, 0, width, height);
         
         // Draw center line
-        ctx.strokeStyle = '#e9ecef';
+        ctx.strokeStyle = '#dee2e6';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(0, centerY);
-        ctx.lineTo(width, centerY);
+        ctx.moveTo(0, height / 2);
+        ctx.lineTo(width, height / 2);
         ctx.stroke();
         
+        // Draw time markers
+        ctx.fillStyle = '#6c757d';
+        ctx.font = '10px Arial';
+        const timeMarkers = 5;
+        for (let i = 0; i <= timeMarkers; i++) {
+            const x = (i / timeMarkers) * width;
+            const time = (i / timeMarkers) * duration;
+            ctx.fillText(this.formatTime(time), x - 10, height - 5);
+            
+            // Draw marker line
+            ctx.strokeStyle = '#e9ecef';
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height - 15);
+            ctx.stroke();
+        }
+        
         // Draw waveform
-        ctx.strokeStyle = '#2196f3';
-        ctx.lineWidth = 1.5;
+        const samplesPerPixel = audioData.length / width;
+        ctx.strokeStyle = '#03a9f4';
+        ctx.lineWidth = 1;
         ctx.beginPath();
         
         for (let x = 0; x < width; x++) {
-            const startSample = x * samplesPerPixel;
-            const endSample = Math.min(startSample + samplesPerPixel, audioData.length);
+            const startSample = Math.floor(x * samplesPerPixel);
+            const endSample = Math.floor((x + 1) * samplesPerPixel);
             
-            if (startSample >= audioData.length) break;
-            
-            // Find min and max in this pixel's worth of samples
-            let min = 1.0;
-            let max = -1.0;
-            
+            // Get RMS for this pixel
+            let sum = 0;
             for (let i = startSample; i < endSample && i < audioData.length; i++) {
-                const sample = audioData[i];
-                if (isFinite(sample)) {  // Check for valid numbers
-                    if (sample < min) min = sample;
-                    if (sample > max) max = sample;
-                }
+                sum += audioData[i] * audioData[i];
             }
+            const rms = Math.sqrt(sum / (endSample - startSample));
             
-            // Convert to canvas coordinates (with bounds checking)
-            const minY = Math.max(0, Math.min(height, centerY + (min * centerY * 0.8)));
-            const maxY = Math.max(0, Math.min(height, centerY + (max * centerY * 0.8)));
+            // Convert to pixel height
+            const amplitude = rms * height * 0.8; // Scale to 80% of canvas height
+            const y = height / 2;
             
-            // Draw vertical line for this pixel
-            if (x === 0) {
-                ctx.moveTo(x, minY);
-            }
-            ctx.lineTo(x, minY);
-            ctx.lineTo(x, maxY);
+            // Draw waveform line
+            ctx.moveTo(x, y - amplitude);
+            ctx.lineTo(x, y + amplitude);
         }
-        
         ctx.stroke();
         
-        // Add time markers
-        ctx.fillStyle = '#6c757d';
-        ctx.font = '10px Arial';
-        const timeIntervals = 5; // Show time every 5 intervals
-        for (let i = 0; i <= timeIntervals; i++) {
-            const x = (width / timeIntervals) * i;
-            const time = (duration / timeIntervals) * i;
-            const timeText = `${time.toFixed(1)}s`;
-            ctx.fillText(timeText, Math.max(0, x - 15), height - 5);
+        // Highlight laughter segments
+        if (laughterData && laughterData.laughter_segments) {
+            this.drawLaughterHighlights(ctx, laughterData.laughter_segments, width, height, duration);
         }
     }
-    
-    highlightLaughterSegments(ctx, laughterSegments, width, height, duration) {
-        if (!laughterSegments || laughterSegments.length === 0 || duration <= 0) {
-            return;
-        }
-        
-        // Draw laughter highlighting
-        ctx.fillStyle = 'rgba(255, 193, 7, 0.3)'; // Semi-transparent yellow
-        
-        laughterSegments.forEach((segment, index) => {
-            // Validate segment data
-            if (!segment || typeof segment.start_time !== 'number' || typeof segment.end_time !== 'number') {
-                console.warn(`Invalid laughter segment ${index}:`, segment);
-                return;
-            }
+
+    drawLaughterHighlights(ctx, laughterSegments, width, height, duration) {
+        laughterSegments.forEach(segment => {
+            const startX = (segment.start_time / duration) * width;
+            const endX = (segment.end_time / duration) * width;
+            const segmentWidth = endX - startX;
             
-            const startX = Math.max(0, (segment.start_time / duration) * width);
-            const endX = Math.min(width, (segment.end_time / duration) * width);
-            const segmentWidth = Math.max(1, endX - startX);
-            
-            // Draw laughter highlight rectangle
+            // Draw laughter highlight
+            ctx.fillStyle = 'rgba(255, 193, 7, 0.3)'; // Semi-transparent yellow
             ctx.fillRect(startX, 0, segmentWidth, height);
             
             // Draw laughter border
-            ctx.strokeStyle = '#f1c40f';
+            ctx.strokeStyle = '#ffc107';
             ctx.lineWidth = 2;
             ctx.strokeRect(startX, 0, segmentWidth, height);
             
-            // Add laughter emoji at the top (only if segment is wide enough)
-            if (segmentWidth > 20) {
-                ctx.fillStyle = '#856404';
-                ctx.font = '16px Arial';
-                const emojiX = startX + (segmentWidth / 2) - 8;
-                ctx.fillText('😄', emojiX, 20);
-                
-                // Add confidence percentage
-                ctx.font = '10px Arial';
-                const confidence = segment.confidence || 0;
-                const confText = `${Math.round(confidence * 100)}%`;
-                const confX = startX + (segmentWidth / 2) - (confText.length * 3);
-                ctx.fillText(confText, confX, 35);
-            }
+            // Add laughter emoji at the top
+            ctx.fillStyle = '#856404';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('😄', startX + segmentWidth / 2 - 8, 20);
+            
+            // Add confidence text
+            ctx.fillStyle = '#856404';
+            ctx.font = '10px Arial';
+            const confText = `${Math.round(segment.confidence * 100)}%`;
+            ctx.fillText(confText, startX + 2, height - 5);
         });
-        
-        // Reset fill style
-        ctx.fillStyle = '#495057';
     }
 
-    drawEmptyWaveform(ctx, width, height) {
-        // Draw empty waveform placeholder
-        const centerY = height / 2;
+    playAudioWithWaveform(audioBlob, canvas, audioData, duration) {
+        const audio = new Audio();
+        audio.src = URL.createObjectURL(audioBlob);
         
-        // Draw center line
-        ctx.strokeStyle = '#e9ecef';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(0, centerY);
-        ctx.lineTo(width, centerY);
-        ctx.stroke();
+        // Create playback position indicator
+        const ctx = canvas.getContext('2d');
+        let animationFrame;
         
-        // Draw "No Audio Data" message
-        ctx.fillStyle = '#6c757d';
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('No Audio Data Available', width / 2, centerY - 10);
-        ctx.font = '12px Arial';
-        ctx.fillText('Record audio to see waveform', width / 2, centerY + 15);
-        ctx.textAlign = 'left';
+        const updatePosition = () => {
+            if (!audio.paused) {
+                // Redraw waveform
+                this.drawWaveform(canvas, audioData, this.currentLaughterData, duration);
+                
+                // Draw playback position
+                const currentTime = audio.currentTime;
+                const x = (currentTime / duration) * canvas.width;
+                
+                ctx.strokeStyle = '#dc3545';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+                
+                // Update time display
+                document.getElementById('waveformTime').textContent = 
+                    `${this.formatTime(currentTime)} / ${this.formatTime(duration)}`;
+                
+                animationFrame = requestAnimationFrame(updatePosition);
+            }
+        };
+        
+        audio.onplay = () => {
+            updatePosition();
+        };
+        
+        audio.onpause = () => {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+        };
+        
+        audio.onended = () => {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+            // Reset position
+            document.getElementById('waveformTime').textContent = `0:00 / ${this.formatTime(duration)}`;
+        };
+        
+        audio.play();
     }
 
-    drawErrorWaveform(ctx, width, height, errorMessage) {
-        // Draw error waveform
-        const centerY = height / 2;
-        
-        // Draw error background
-        ctx.fillStyle = 'rgba(220, 53, 69, 0.1)';
-        ctx.fillRect(0, 0, width, height);
-        
-        // Draw error message
-        ctx.fillStyle = '#dc3545';
-        ctx.font = '14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Waveform Error', width / 2, centerY - 10);
-        ctx.font = '10px Arial';
-        ctx.fillText(errorMessage, width / 2, centerY + 10);
-        ctx.textAlign = 'left';
+    formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
 
     displayWordBreakdown(wordAnalysis) {
