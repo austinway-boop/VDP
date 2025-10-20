@@ -1,0 +1,36 @@
+{
+  "word_id": "1760998172_if_0fb51a8d",
+  "original_word": "if",
+  "clean_word": "if",
+  "word_index": 2,
+  "total_words": 19,
+  "full_text": "we'll see if my program works hopefully it does work that's good i hope it works i'll be amazing",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpd9qk4nq1.wav",
+  "timestamp": 1760998172,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "google",
+    "service_confidence": 0.80144405,
+    "estimated_confidence": 0.8768421052631579,
+    "final_confidence": 0.8316032721052631,
+    "audio_hash": "fb6e47250a3f4c86a3eb83ff5e471d29",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "we'll see if my program works hopefully it does work that's good i hope it works i'll be amazing",
+        "confidence": 0.80144405
+      }
+    ]
+  },
+  "estimated_position": "Word 3 of 19",
+  "context": {
+    "before": "we'll see",
+    "target": "if",
+    "after": "my program",
+    "full_context": "we'll see if my program"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

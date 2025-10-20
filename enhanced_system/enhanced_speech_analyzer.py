@@ -33,6 +33,14 @@ except ImportError as e:
     print(f"⚠️ Laughter detection not available: {e}")
     LAUGHTER_DETECTION_AVAILABLE = False
 
+# Import music detector
+try:
+    from music_detector import detect_music_in_audio, get_music_summary
+    MUSIC_DETECTION_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ Music detection not available: {e}")
+    MUSIC_DETECTION_AVAILABLE = False
+
 class EnhancedSpeechAnalyzer:
     def __init__(self, confidence_threshold: float = 0.7):
         # Look for words directory in parent directory (main project root)
@@ -683,6 +691,7 @@ class EnhancedSpeechAnalyzer:
                 "metadata": metadata,
                 "emotion_analysis": self.get_neutral_emotion_result(""),
                 "laughter_analysis": {"error": "No audio to analyze"},
+                "music_analysis": {"error": "No audio to analyze"},
                 "processing_time": 0,
                 "success": False,
                 "error": metadata.get("error", "Unknown error"),
@@ -722,7 +731,30 @@ class EnhancedSpeechAnalyzer:
         emotion_analysis = self.analyze_phrase_emotion(text, laughter_analysis)
         processing_time = time.time() - start_time
         
-        # Step 5: Check for unknown words and save word snippets
+        # Step 5: Detect background music
+        print("Detecting background music...")
+        music_analysis = {}
+        if MUSIC_DETECTION_AVAILABLE:
+            try:
+                music_analysis = detect_music_in_audio(audio_file_path)
+                if music_analysis.get('music_segments'):
+                    print(f"🎵 Music detected: {len(music_analysis['music_segments'])} segments")
+                    print(get_music_summary(music_analysis))
+                    
+                    # Show identified songs
+                    songs = music_analysis.get('identified_songs', [])
+                    if songs:
+                        for song in songs:
+                            print(f"🎼 {song['title']} by {song['artist']} (confidence: {song['match_confidence']:.0%})")
+                else:
+                    print("🔇 No background music detected")
+            except Exception as e:
+                print(f"⚠️ Music detection error: {e}")
+                music_analysis = {'error': str(e)}
+        else:
+            music_analysis = {'error': 'Music detection not available'}
+        
+        # Step 6: Check for unknown words and save word snippets
         print("Checking for unknown words...")
         unknown_word_ids = self.save_uncertain_words(audio_file_path, text, emotion_analysis, metadata)
         
@@ -732,6 +764,7 @@ class EnhancedSpeechAnalyzer:
             "metadata": metadata,
             "emotion_analysis": emotion_analysis,
             "laughter_analysis": laughter_analysis,
+            "music_analysis": music_analysis,
             "processing_time": processing_time,
             "success": True,
             "error": None,

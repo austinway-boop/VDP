@@ -172,6 +172,33 @@
                     <!-- Laughter influence on emotions will be shown here -->
                 </div>
             </div>
+            
+            <!-- Music Detection Section -->
+            <div class="music-analysis" id="musicAnalysis" style="display:none;">
+                <h4>🎵 Background Music Detection</h4>
+                <div class="music-summary" id="musicSummary">
+                    No music detected
+                </div>
+                
+                <!-- Music Timeline Graph -->
+                <div class="music-graph-container" id="musicGraphContainer" style="display:none;">
+                    <h5>📊 Music Timeline</h5>
+                    <div class="graph-wrapper">
+                        <canvas id="musicGraph" width="600" height="120"></canvas>
+                        <div class="graph-labels">
+                            <span class="time-label">0s</span>
+                            <span class="time-label" style="float: right;" id="musicMaxTimeLabel">10s</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="music-timeline" id="musicTimeline">
+                    <!-- Music segments will be shown here -->
+                </div>
+                <div class="identified-songs" id="identifiedSongs" style="display:none;">
+                    <!-- Identified songs will be shown here -->
+                </div>
+            </div>
         </div>
     </div>
 

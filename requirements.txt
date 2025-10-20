@@ -21,6 +21,11 @@ scipy>=1.7.0
 # Enhanced speech recognition
 openai-whisper>=20230918
 
+# Music detection and identification
+pyacoustid>=1.2.0
+chromaprint-python>=0.4
+mutagen>=1.45.0
+
 # Web server dependencies  
 requests>=2.25.0
 pathlib2>=2.3.0

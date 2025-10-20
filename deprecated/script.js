@@ -1963,6 +1963,9 @@ class AudioRecorder {
         
         // Display laughter analysis if available
         this.displayLaughterAnalysis(result.laughter_analysis, analysis.laughter_influence);
+        
+        // Display music analysis if available
+        this.displayMusicAnalysis(result.music_analysis);
     }
 
     displayLaughterAnalysis(laughterData, laughterInfluence) {
@@ -2205,6 +2208,260 @@ class AudioRecorder {
                     tooltip.innerHTML = `
                         Time: ${closestPoint.time.toFixed(1)}s<br>
                         Laughter: ${(closestPoint.laughter_intensity * 100).toFixed(1)}%
+                    `;
+                }
+            }
+        });
+        
+        canvas.addEventListener('mouseleave', () => {
+            tooltip.style.display = 'none';
+        });
+    }
+
+    displayMusicAnalysis(musicData) {
+        const musicSection = document.getElementById('musicAnalysis');
+        const musicSummary = document.getElementById('musicSummary');
+        const musicTimeline = document.getElementById('musicTimeline');
+        const identifiedSongs = document.getElementById('identifiedSongs');
+        
+        if (!musicSection || !musicData) {
+            return;
+        }
+        
+        // Check if music was detected
+        const segments = musicData.music_segments || [];
+        const songs = musicData.identified_songs || [];
+        
+        if (segments.length === 0) {
+            musicSection.style.display = 'none';
+            return;
+        }
+        
+        // Show music section
+        musicSection.style.display = 'block';
+        
+        // Update summary
+        const totalTime = musicData.total_music_time || 0;
+        const percentage = musicData.music_percentage || 0;
+        const numSegments = segments.length;
+        
+        musicSummary.innerHTML = `
+            <strong>🎵 ${numSegments} music segment${numSegments !== 1 ? 's' : ''} detected</strong><br>
+            ⏱️ Total music: ${totalTime.toFixed(1)}s (${percentage.toFixed(1)}% of audio)
+        `;
+        
+        // Draw music timeline graph
+        this.drawMusicGraph(musicData);
+        
+        // Create timeline visualization in word-analysis style
+        const musicSegmentsHtml = segments.map((segment, index) => `
+            <span class="music-segment" title="Music: ${segment.start_time}s-${segment.end_time}s (${Math.round(segment.confidence * 100)}% confidence)">
+                🎵 ${segment.start_time}s-${segment.end_time}s
+            </span>
+        `).join('');
+        
+        musicTimeline.innerHTML = `
+            <strong>Music Timeline:</strong>
+            <div style="margin-top: 10px;">
+                ${musicSegmentsHtml}
+            </div>
+            <div class="music-legend">
+                <span class="music-legend-item">🎵 Background Music</span>
+            </div>
+            <div class="music-stats">
+                <span>Total: ${totalTime.toFixed(1)}s</span>
+                <span class="music-percentage">${percentage.toFixed(1)}% of audio</span>
+            </div>
+        `;
+        
+        // Show identified songs if any
+        if (songs.length > 0 && identifiedSongs) {
+            identifiedSongs.style.display = 'block';
+            identifiedSongs.innerHTML = `
+                <strong>🎼 Identified Songs:</strong>
+                ${songs.map(song => `
+                    <div class="song-item">
+                        <div class="song-info">
+                            <div class="song-title">${song.title}</div>
+                            <div class="song-artist">by ${song.artist}</div>
+                        </div>
+                        <div class="song-confidence">${Math.round(song.match_confidence * 100)}%</div>
+                        <div class="song-timing">${song.segment_start}s-${song.segment_end}s</div>
+                    </div>
+                `).join('')}
+            `;
+        } else if (identifiedSongs) {
+            identifiedSongs.style.display = 'none';
+        }
+        
+        console.log('DEBUG: Displayed music analysis:', musicData);
+    }
+
+    drawMusicGraph(musicData) {
+        const canvas = document.getElementById('musicGraph');
+        const graphContainer = document.getElementById('musicGraphContainer');
+        const maxTimeLabel = document.getElementById('musicMaxTimeLabel');
+        
+        if (!canvas || !musicData.timeline_data) {
+            if (graphContainer) graphContainer.style.display = 'none';
+            return;
+        }
+
+        const timelineData = musicData.timeline_data;
+        const points = timelineData.points || [];
+        
+        if (points.length === 0) {
+            if (graphContainer) graphContainer.style.display = 'none';
+            return;
+        }
+
+        // Show graph container
+        if (graphContainer) graphContainer.style.display = 'block';
+        
+        // Update time label
+        if (maxTimeLabel) {
+            maxTimeLabel.textContent = `${musicData.audio_duration.toFixed(1)}s`;
+        }
+
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
+        
+        // Set up drawing parameters
+        const padding = 20;
+        const graphWidth = width - (padding * 2);
+        const graphHeight = height - (padding * 2);
+        const maxTime = musicData.audio_duration;
+        const maxIntensity = timelineData.max_intensity || 1.0;
+        
+        // Draw background grid
+        ctx.strokeStyle = '#e9ecef';
+        ctx.lineWidth = 1;
+        
+        // Vertical grid lines (time)
+        const timeSteps = Math.min(10, Math.ceil(maxTime));
+        for (let i = 0; i <= timeSteps; i++) {
+            const x = padding + (i / timeSteps) * graphWidth;
+            ctx.beginPath();
+            ctx.moveTo(x, padding);
+            ctx.lineTo(x, height - padding);
+            ctx.stroke();
+        }
+        
+        // Horizontal grid lines (intensity)
+        for (let i = 0; i <= 4; i++) {
+            const y = padding + (i / 4) * graphHeight;
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(width - padding, y);
+            ctx.stroke();
+        }
+        
+        // Draw music intensity line
+        if (points.length > 1) {
+            ctx.strokeStyle = '#29b6f6';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            ctx.beginPath();
+            
+            for (let i = 0; i < points.length; i++) {
+                const point = points[i];
+                const x = padding + (point.time / maxTime) * graphWidth;
+                const y = height - padding - (point.music_intensity / maxIntensity) * graphHeight;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.stroke();
+            
+            // Fill area under the curve
+            ctx.fillStyle = 'rgba(41, 182, 246, 0.2)';
+            ctx.lineTo(width - padding, height - padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // Draw music segment highlights
+        const segments = musicData.music_segments || [];
+        segments.forEach(segment => {
+            const startX = padding + (segment.start_time / maxTime) * graphWidth;
+            const endX = padding + (segment.end_time / maxTime) * graphWidth;
+            
+            // Draw highlight rectangle
+            ctx.fillStyle = 'rgba(41, 182, 246, 0.4)';
+            ctx.fillRect(startX, padding, endX - startX, graphHeight);
+            
+            // Draw segment borders
+            ctx.strokeStyle = '#29b6f6';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(startX, padding);
+            ctx.lineTo(startX, height - padding);
+            ctx.moveTo(endX, padding);
+            ctx.lineTo(endX, height - padding);
+            ctx.stroke();
+        });
+        
+        // Add axis labels
+        ctx.fillStyle = '#495057';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        
+        // Y-axis label
+        ctx.save();
+        ctx.translate(12, height / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('Music Intensity', 0, 0);
+        ctx.restore();
+        
+        // X-axis label
+        ctx.fillText('Time (seconds)', width / 2, height - 5);
+        
+        // Add hover functionality
+        this.setupMusicGraphHover(canvas, musicData);
+    }
+
+    setupMusicGraphHover(canvas, musicData) {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'graph-tooltip';
+        document.body.appendChild(tooltip);
+        
+        canvas.addEventListener('mousemove', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            // Convert pixel coordinates to time
+            const padding = 20;
+            const graphWidth = canvas.width - (padding * 2);
+            const relativeX = (x - padding) / graphWidth;
+            const time = relativeX * musicData.audio_duration;
+            
+            if (time >= 0 && time <= musicData.audio_duration) {
+                // Find closest timeline point
+                const timelineData = musicData.timeline_data;
+                if (timelineData && timelineData.points) {
+                    const closestPoint = timelineData.points.reduce((prev, curr) => 
+                        Math.abs(curr.time - time) < Math.abs(prev.time - time) ? curr : prev
+                    );
+                    
+                    // Show tooltip
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = (event.clientX + 10) + 'px';
+                    tooltip.style.top = (event.clientY - 40) + 'px';
+                    tooltip.innerHTML = `
+                        Time: ${closestPoint.time.toFixed(1)}s<br>
+                        Music: ${(closestPoint.music_intensity * 100).toFixed(1)}%
                     `;
                 }
             }
