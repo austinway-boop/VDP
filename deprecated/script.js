@@ -1925,7 +1925,9 @@ class AudioRecorder {
         this.displayConfidenceInfo(result.confidence, result.needs_review);
         
         // Display word-by-word analysis with color coding
-        this.displayWordBreakdown(analysis.word_analysis || []);
+        console.log('DEBUG: analysis object:', analysis);
+        console.log('DEBUG: analysis.word_analysis:', analysis ? analysis.word_analysis : 'analysis is null');
+        this.displayWordBreakdown(analysis ? (analysis.word_analysis || []) : []);
         
         // Update primary emotion - use the highest probability emotion for accuracy
         const emotionIcons = {
@@ -2477,21 +2479,47 @@ class AudioRecorder {
         
         this.elements.wordBreakdown.innerHTML = '';
         
-        if (!wordAnalysis || wordAnalysis.length === 0) {
+        console.log('DEBUG: displayWordBreakdown called with:', wordAnalysis);
+        console.log('DEBUG: wordAnalysis type:', typeof wordAnalysis);
+        console.log('DEBUG: wordAnalysis length:', wordAnalysis ? wordAnalysis.length : 'null/undefined');
+        
+        if (!wordAnalysis || !Array.isArray(wordAnalysis) || wordAnalysis.length === 0) {
+            console.log('DEBUG: No word analysis data available');
             this.elements.wordBreakdown.innerHTML = '<span class="no-words">No words to analyze (Debug: wordAnalysis=' + (wordAnalysis ? wordAnalysis.length : 'null') + ')</span>';
-            console.log('DEBUG: wordAnalysis is empty or null:', wordAnalysis);
             return;
         }
         
         console.log('DEBUG: Processing', wordAnalysis.length, 'words for display');
         
-        // Separate confident and filtered words for cleaner display
-        const confidentWords = wordAnalysis.filter(w => w.found && w.emotion !== 'filtered' && w.confidence > 0.25);
-        const filteredWords = wordAnalysis.filter(w => w.emotion === 'filtered' || (w.found && w.confidence <= 0.25));
-        const notFoundWords = wordAnalysis.filter(w => !w.found);
+        // Display ALL words regardless of confidence (simplified approach)
+        console.log('DEBUG: Displaying all words without filtering');
         
-        // Display confident words prominently
-        if (confidentWords.length > 0) {
+        wordAnalysis.forEach(wordData => {
+            console.log('DEBUG: Processing word:', wordData.word, 'emotion:', wordData.emotion, 'confidence:', wordData.confidence);
+            
+            const wordSpan = document.createElement('span');
+            wordSpan.className = `word-item ${wordData.emotion || 'neutral'}`;
+            wordSpan.textContent = wordData.word;
+            
+            // Add confidence badge
+            if (wordData.confidence !== undefined) {
+                const confidenceBadge = document.createElement('span');
+                confidenceBadge.className = 'word-confidence';
+                confidenceBadge.textContent = Math.round(wordData.confidence * 100) + '%';
+                wordSpan.appendChild(confidenceBadge);
+            }
+            
+            // Add tooltip
+            const tooltip = `Emotion: ${wordData.emotion || 'neutral'} (${Math.round((wordData.confidence || 0) * 100)}%)\nFound: ${wordData.found ? 'Yes' : 'No'}`;
+            wordSpan.setAttribute('title', tooltip);
+            
+            this.elements.wordBreakdown.appendChild(wordSpan);
+        });
+        
+        console.log('DEBUG: Finished displaying', wordAnalysis.length, 'words');
+        
+        // OLD CODE - keeping for reference but not using
+        if (false) { // Disabled complex filtering
             const confidentHeader = document.createElement('div');
             confidentHeader.className = 'word-section-header';
             confidentHeader.style.cssText = 'font-weight: bold; color: #4CAF50; margin-bottom: 10px;';
@@ -2570,7 +2598,7 @@ class AudioRecorder {
                 
                 this.elements.wordBreakdown.appendChild(wordSpan);
             });
-        }
+        } // End of disabled old code
     }
 
     showWordDetails(wordData) {
