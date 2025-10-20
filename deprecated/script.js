@@ -1876,11 +1876,11 @@ class AudioRecorder {
             const result = await response.json();
             console.log('Full API Response:', result);
             
+            // Store audio buffer for waveform visualization regardless of success
+            this.currentAudioBuffer = this.audioBuffer;
+            
             if (result.success && result.result) {
                 console.log('Processing successful result:', result.result);
-                
-                // Store audio buffer for waveform visualization
-                this.currentAudioBuffer = this.audioBuffer;
                 
                 this.displayEmotionResults(result.result);
                 this.showStatus('Emotion analysis complete!', 'success');
@@ -1896,7 +1896,16 @@ class AudioRecorder {
                 }
             } else {
                 console.error('API Error:', result);
-                this.showStatus(`Analysis failed: ${result.error || 'Unknown error'}`, 'error');
+                
+                // Even if speech recognition failed, try to show laughter and waveform
+                if (result.result) {
+                    console.log('Showing partial results despite speech recognition failure');
+                    this.displayPartialResults(result.result);
+                }
+                
+                const errorMsg = result.result?.error || result.error || 'Unknown error';
+                const suggestion = result.result?.audio_diagnostics?.suggestion || '';
+                this.showStatus(`Speech recognition failed: ${errorMsg}. ${suggestion}`, 'error');
             }
 
         } catch (error) {
@@ -2042,43 +2051,110 @@ class AudioRecorder {
         console.log('DEBUG: Displayed laughter analysis:', laughterData);
     }
 
+    displayPartialResults(result) {
+        console.log('DEBUG: Displaying partial results:', result);
+        
+        // Show the emotion analysis section even if speech failed
+        this.elements.emotionAnalysis.style.display = 'block';
+        
+        // Update transcription with error message
+        this.elements.transcriptionText.textContent = result.transcription || 'Speech recognition failed';
+        
+        // Hide confidence info since we don't have good transcription
+        this.elements.confidenceInfo.style.display = 'none';
+        
+        // Still show laughter analysis and waveform if available
+        this.displayLaughterAnalysis(result.laughter_analysis);
+        this.displayWaveformWithLaughter(result.laughter_analysis);
+        
+        // Show neutral emotions
+        const neutralEmotions = {
+            'joy': 0.125, 'trust': 0.125, 'anticipation': 0.125, 'surprise': 0.125,
+            'anger': 0.125, 'fear': 0.125, 'sadness': 0.125, 'disgust': 0.125
+        };
+        this.createEmotionBars(neutralEmotions);
+        
+        // Update primary emotion to neutral
+        this.elements.emotionIcon.textContent = '😐';
+        this.elements.emotionName.textContent = 'Speech Not Detected';
+        this.elements.emotionConfidence.textContent = '0%';
+        
+        // Clear word breakdown
+        if (this.elements.wordBreakdown) {
+            this.elements.wordBreakdown.innerHTML = '<em>No words detected - check audio quality</em>';
+        }
+    }
+
     displayWaveformWithLaughter(laughterData) {
         const waveformSection = document.getElementById('waveformAnalysis');
         const canvas = document.getElementById('waveformCanvas');
         
-        if (!canvas || !this.currentAudioBuffer) {
+        if (!canvas) {
+            console.log('DEBUG: Canvas not found for waveform');
             return;
         }
         
-        // Show waveform section
-        waveformSection.style.display = 'block';
-        
-        const ctx = canvas.getContext('2d');
-        const width = canvas.width;
-        const height = canvas.height;
-        
-        // Clear canvas
-        ctx.clearRect(0, 0, width, height);
-        
-        // Get audio data
-        const audioData = this.currentAudioBuffer.getChannelData(0); // Get first channel
-        const duration = this.currentAudioBuffer.duration;
-        const sampleRate = this.currentAudioBuffer.sampleRate;
-        
-        // Draw waveform
-        this.drawWaveform(ctx, audioData, width, height, duration);
-        
-        // Highlight laughter segments if available
-        if (laughterData && laughterData.laughter_segments) {
-            this.highlightLaughterSegments(ctx, laughterData.laughter_segments, width, height, duration);
+        if (!this.currentAudioBuffer) {
+            console.log('DEBUG: No audio buffer available for waveform');
+            return;
         }
         
-        console.log('DEBUG: Drew waveform with laughter highlights');
+        try {
+            // Show waveform section
+            waveformSection.style.display = 'block';
+            
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Safely get audio data with error checking
+            if (this.currentAudioBuffer.numberOfChannels === 0) {
+                console.log('DEBUG: Audio buffer has no channels');
+                this.drawEmptyWaveform(ctx, width, height);
+                return;
+            }
+            
+            const audioData = this.currentAudioBuffer.getChannelData(0); // Get first channel
+            const duration = this.currentAudioBuffer.duration;
+            const sampleRate = this.currentAudioBuffer.sampleRate;
+            
+            if (!audioData || audioData.length === 0) {
+                console.log('DEBUG: No audio data in buffer');
+                this.drawEmptyWaveform(ctx, width, height);
+                return;
+            }
+            
+            console.log(`DEBUG: Drawing waveform - Duration: ${duration}s, Samples: ${audioData.length}`);
+            
+            // Draw waveform
+            this.drawWaveform(ctx, audioData, width, height, duration);
+            
+            // Highlight laughter segments if available
+            if (laughterData && laughterData.laughter_segments && laughterData.laughter_segments.length > 0) {
+                this.highlightLaughterSegments(ctx, laughterData.laughter_segments, width, height, duration);
+                console.log(`DEBUG: Highlighted ${laughterData.laughter_segments.length} laughter segments`);
+            }
+            
+            console.log('DEBUG: Drew waveform with laughter highlights successfully');
+            
+        } catch (error) {
+            console.error('ERROR: Failed to draw waveform:', error);
+            this.drawErrorWaveform(canvas.getContext('2d'), canvas.width, canvas.height, error.message);
+        }
     }
     
     drawWaveform(ctx, audioData, width, height, duration) {
+        if (!audioData || audioData.length === 0) {
+            console.log('DEBUG: audioData is empty or undefined');
+            this.drawEmptyWaveform(ctx, width, height);
+            return;
+        }
+        
         const centerY = height / 2;
-        const samplesPerPixel = Math.floor(audioData.length / width);
+        const samplesPerPixel = Math.max(1, Math.floor(audioData.length / width));
         
         // Draw center line
         ctx.strokeStyle = '#e9ecef';
@@ -2097,22 +2173,29 @@ class AudioRecorder {
             const startSample = x * samplesPerPixel;
             const endSample = Math.min(startSample + samplesPerPixel, audioData.length);
             
+            if (startSample >= audioData.length) break;
+            
             // Find min and max in this pixel's worth of samples
             let min = 1.0;
             let max = -1.0;
             
-            for (let i = startSample; i < endSample; i++) {
+            for (let i = startSample; i < endSample && i < audioData.length; i++) {
                 const sample = audioData[i];
-                if (sample < min) min = sample;
-                if (sample > max) max = sample;
+                if (isFinite(sample)) {  // Check for valid numbers
+                    if (sample < min) min = sample;
+                    if (sample > max) max = sample;
+                }
             }
             
-            // Convert to canvas coordinates
-            const minY = centerY + (min * centerY * 0.8);
-            const maxY = centerY + (max * centerY * 0.8);
+            // Convert to canvas coordinates (with bounds checking)
+            const minY = Math.max(0, Math.min(height, centerY + (min * centerY * 0.8)));
+            const maxY = Math.max(0, Math.min(height, centerY + (max * centerY * 0.8)));
             
             // Draw vertical line for this pixel
-            ctx.moveTo(x, minY);
+            if (x === 0) {
+                ctx.moveTo(x, minY);
+            }
+            ctx.lineTo(x, minY);
             ctx.lineTo(x, maxY);
         }
         
@@ -2125,18 +2208,29 @@ class AudioRecorder {
         for (let i = 0; i <= timeIntervals; i++) {
             const x = (width / timeIntervals) * i;
             const time = (duration / timeIntervals) * i;
-            ctx.fillText(`${time.toFixed(1)}s`, x - 10, height - 5);
+            const timeText = `${time.toFixed(1)}s`;
+            ctx.fillText(timeText, Math.max(0, x - 15), height - 5);
         }
     }
     
     highlightLaughterSegments(ctx, laughterSegments, width, height, duration) {
+        if (!laughterSegments || laughterSegments.length === 0 || duration <= 0) {
+            return;
+        }
+        
         // Draw laughter highlighting
         ctx.fillStyle = 'rgba(255, 193, 7, 0.3)'; // Semi-transparent yellow
         
         laughterSegments.forEach((segment, index) => {
-            const startX = (segment.start_time / duration) * width;
-            const endX = (segment.end_time / duration) * width;
-            const segmentWidth = endX - startX;
+            // Validate segment data
+            if (!segment || typeof segment.start_time !== 'number' || typeof segment.end_time !== 'number') {
+                console.warn(`Invalid laughter segment ${index}:`, segment);
+                return;
+            }
+            
+            const startX = Math.max(0, (segment.start_time / duration) * width);
+            const endX = Math.min(width, (segment.end_time / duration) * width);
+            const segmentWidth = Math.max(1, endX - startX);
             
             // Draw laughter highlight rectangle
             ctx.fillRect(startX, 0, segmentWidth, height);
@@ -2146,22 +2240,64 @@ class AudioRecorder {
             ctx.lineWidth = 2;
             ctx.strokeRect(startX, 0, segmentWidth, height);
             
-            // Add laughter emoji at the top
-            ctx.fillStyle = '#856404';
-            ctx.font = '16px Arial';
-            const emojiX = startX + (segmentWidth / 2) - 8;
-            ctx.fillText('😄', emojiX, 20);
-            
-            // Add confidence percentage
-            ctx.fillStyle = '#856404';
-            ctx.font = '10px Arial';
-            const confText = `${Math.round(segment.confidence * 100)}%`;
-            const confX = startX + (segmentWidth / 2) - (confText.length * 3);
-            ctx.fillText(confText, confX, 35);
+            // Add laughter emoji at the top (only if segment is wide enough)
+            if (segmentWidth > 20) {
+                ctx.fillStyle = '#856404';
+                ctx.font = '16px Arial';
+                const emojiX = startX + (segmentWidth / 2) - 8;
+                ctx.fillText('😄', emojiX, 20);
+                
+                // Add confidence percentage
+                ctx.font = '10px Arial';
+                const confidence = segment.confidence || 0;
+                const confText = `${Math.round(confidence * 100)}%`;
+                const confX = startX + (segmentWidth / 2) - (confText.length * 3);
+                ctx.fillText(confText, confX, 35);
+            }
         });
         
         // Reset fill style
         ctx.fillStyle = '#495057';
+    }
+
+    drawEmptyWaveform(ctx, width, height) {
+        // Draw empty waveform placeholder
+        const centerY = height / 2;
+        
+        // Draw center line
+        ctx.strokeStyle = '#e9ecef';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, centerY);
+        ctx.lineTo(width, centerY);
+        ctx.stroke();
+        
+        // Draw "No Audio Data" message
+        ctx.fillStyle = '#6c757d';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('No Audio Data Available', width / 2, centerY - 10);
+        ctx.font = '12px Arial';
+        ctx.fillText('Record audio to see waveform', width / 2, centerY + 15);
+        ctx.textAlign = 'left';
+    }
+
+    drawErrorWaveform(ctx, width, height, errorMessage) {
+        // Draw error waveform
+        const centerY = height / 2;
+        
+        // Draw error background
+        ctx.fillStyle = 'rgba(220, 53, 69, 0.1)';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Draw error message
+        ctx.fillStyle = '#dc3545';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Waveform Error', width / 2, centerY - 10);
+        ctx.font = '10px Arial';
+        ctx.fillText(errorMessage, width / 2, centerY + 10);
+        ctx.textAlign = 'left';
     }
 
     displayWordBreakdown(wordAnalysis) {
