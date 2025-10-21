@@ -1,9 +1,8 @@
 // Vercel Serverless Function for Audio Analysis
-// Converts audio to text and analyzes emotions
+// Provides helpful message about serverless limitations
 
 const formidable = require('formidable');
 const fs = require('fs');
-const path = require('path');
 
 // Disable body parser to handle multipart/form-data
 exports.config = {
@@ -11,54 +10,6 @@ exports.config = {
     bodyParser: false,
   },
 };
-
-// Helper function to run Python scripts
-async function runPythonAnalysis(audioFilePath, retryMode = 'normal') {
-  return new Promise((resolve, reject) => {
-    const pythonScript = path.join(process.cwd(), 'api', 'audio_analyzer.py');
-    const args = [pythonScript, audioFilePath];
-    
-    if (retryMode === 'aggressive') {
-      args.push('--retry-mode', 'aggressive');
-    }
-    
-    const python = spawn('python3', args, {
-      cwd: process.cwd(),
-      env: {
-        ...process.env,
-        PYTHONPATH: path.join(process.cwd(), 'api'),
-      }
-    });
-    
-    let stdout = '';
-    let stderr = '';
-    
-    python.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-    
-    python.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-    
-    python.on('close', (code) => {
-      if (code === 0) {
-        try {
-          const result = JSON.parse(stdout);
-          resolve(result);
-        } catch (e) {
-          reject(new Error(`Failed to parse Python output: ${e.message}`));
-        }
-      } else {
-        reject(new Error(`Python script failed with code ${code}: ${stderr}`));
-      }
-    });
-    
-    python.on('error', (error) => {
-      reject(new Error(`Failed to start Python process: ${error.message}`));
-    });
-  });
-}
 
 module.exports = async function handler(req, res) {
   // Set CORS headers
@@ -123,15 +74,10 @@ module.exports = async function handler(req, res) {
     
     tempFilePath = audioFile.filepath;
     
-    // Log analysis start
+    // Log file received
     console.log(`🎯 Audio upload received: ${audioFile.originalFilename || 'unknown'}`);
     console.log(`📊 File size: ${audioFile.size} bytes`);
     console.log(`🔄 Retry mode: ${retryMode}`);
-    
-    // For serverless environment, provide helpful message instead of processing
-    const processingTime = 0.1;
-    
-    console.log(`✅ File received successfully`);
     
     // Clean up temp file
     if (tempFilePath && fs.existsSync(tempFilePath)) {
@@ -143,19 +89,22 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       success: false,
       error: 'Audio analysis is not available in the serverless environment due to dependency limitations.',
-      message: 'Please use the text analysis endpoint instead for emotion analysis.',
+      message: 'Audio file received successfully, but processing requires heavy dependencies not available in serverless functions.',
       suggestion: {
+        text: 'Please use the text analysis endpoint instead for emotion analysis.',
         endpoint: '/api/analyze-text',
         method: 'POST',
         example: {
-          body: { text: 'I am feeling excited about this project!' }
+          url: 'https://vdp-peach.vercel.app/api/analyze-text',
+          body: { text: 'I am feeling excited about this project!' },
+          curl: 'curl -X POST https://vdp-peach.vercel.app/api/analyze-text -H "Content-Type: application/json" -d \'{"text": "I am happy"}\''
         }
       },
       file_received: {
         size: audioFile.size,
         name: audioFile.originalFilename,
         type: audioFile.mimetype,
-        processing_time: processingTime
+        processing_time: 0.1
       }
     });
     
@@ -177,4 +126,4 @@ module.exports = async function handler(req, res) {
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-}
+};
