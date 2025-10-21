@@ -126,18 +126,14 @@ export default async function handler(req, res) {
     tempFilePath = audioFile.filepath;
     
     // Log analysis start
-    console.log(`🎯 Starting audio analysis for file: ${audioFile.originalFilename || 'unknown'}`);
+    console.log(`🎯 Audio upload received: ${audioFile.originalFilename || 'unknown'}`);
     console.log(`📊 File size: ${audioFile.size} bytes`);
     console.log(`🔄 Retry mode: ${retryMode}`);
     
-    // Run the Python analysis
-    const startTime = Date.now();
-    const result = await runPythonAnalysis(tempFilePath, retryMode);
-    const processingTime = (Date.now() - startTime) / 1000;
+    // For serverless environment, provide helpful message instead of processing
+    const processingTime = 0.1;
     
-    console.log(`✅ Analysis completed in ${processingTime.toFixed(2)}s`);
-    console.log(`📝 Transcription: "${result.transcription || 'No speech detected'}"`);
-    console.log(`🎭 Primary emotion: ${result.emotion_analysis?.overall_emotion || 'unknown'}`);
+    console.log(`✅ File received successfully`);
     
     // Clean up temp file
     if (tempFilePath && fs.existsSync(tempFilePath)) {
@@ -145,33 +141,23 @@ export default async function handler(req, res) {
       tempFilePath = null;
     }
     
-    // Check if analysis succeeded
-    if (!result.success || result.error || !result.transcription?.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: result.error || 'Speech recognition failed. Please try speaking louder or in a quieter environment.',
-        details: {
-          confidence: result.confidence || 0,
-          processing_time: processingTime,
-          file_info: {
-            size: audioFile.size,
-            name: audioFile.originalFilename
-          }
-        }
-      });
-    }
-    
-    // Return successful result
+    // Return helpful message for serverless environment
     return res.status(200).json({
-      success: true,
-      result: {
-        ...result,
-        api_processing_time: processingTime,
-        file_info: {
-          size: audioFile.size,
-          name: audioFile.originalFilename,
-          type: audioFile.mimetype
+      success: false,
+      error: 'Audio analysis is not available in the serverless environment due to dependency limitations.',
+      message: 'Please use the text analysis endpoint instead for emotion analysis.',
+      suggestion: {
+        endpoint: '/api/analyze-text',
+        method: 'POST',
+        example: {
+          body: { text: 'I am feeling excited about this project!' }
         }
+      },
+      file_received: {
+        size: audioFile.size,
+        name: audioFile.originalFilename,
+        type: audioFile.mimetype,
+        processing_time: processingTime
       }
     });
     
