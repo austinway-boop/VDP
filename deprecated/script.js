@@ -1894,7 +1894,7 @@ class AudioRecorder {
             formData.append('retry_mode', 'aggressive');
 
             // Send to enhanced emotion analysis server with retry mode
-            const response = await fetch('http://localhost:5003/api/analyze-audio', {
+            const response = await fetch('https://vdp-peach.vercel.app/api/analyze-audio', {
                 method: 'POST',
                 body: formData
             });
@@ -1940,8 +1940,8 @@ class AudioRecorder {
             const formData = new FormData();
             formData.append('audio', wavBlob, 'recording.wav');
 
-            // Send to enhanced emotion analysis server with training capabilities
-            const response = await fetch('http://localhost:5003/api/analyze-audio', {
+            // Send to live Vercel API
+            const response = await fetch('https://vdp-peach.vercel.app/api/analyze-audio', {
                 method: 'POST',
                 body: formData
             });
