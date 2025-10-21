@@ -1,8 +1,7 @@
 // Vercel Serverless Function for System Statistics
 // Returns information about the emotion analysis system
 
-const { spawn } = require('child_process');
-const path = require('path');
+const { emotionEngine } = require('./emotion-engine');
 
 // Helper function to get system stats from Python
 async function getSystemStats() {
@@ -80,11 +79,13 @@ module.exports = async function handler(req, res) {
     
     const queryTime = 0.001;
     
+    const dbStats = emotionEngine.getDatabaseStats();
+    
     return res.status(200).json({
       success: true,
       stats: {
-        word_database_size: "25000+",
-        system_status: "operational_serverless",
+        word_database_size: dbStats.total_words,
+        system_status: "operational_real_analysis",
         api_calls: {
           stats_calls: callCounts.stats,
           text_analysis_calls: callCounts.text_analysis,
@@ -95,6 +96,8 @@ module.exports = async function handler(req, res) {
         features: {
           speech_recognition: false,
           emotion_analysis: true,
+          real_word_database: true,
+          deepseek_integration: dbStats.deepseek_available,
           text_analysis: true,
           laughter_detection: false,
           music_detection: false,

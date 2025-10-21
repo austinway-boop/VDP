@@ -1,112 +1,15 @@
 // Vercel Serverless Function for Text Emotion Analysis
-// Analyzes emotions directly from text input using DeepSeek API
+// Uses REAL emotion analysis with word database + DeepSeek API
+
+const { emotionEngine } = require('./emotion-engine');
 
 // Simple in-memory counter (resets on function restart)
 let textAnalysisCalls = 0;
 
-// Simple emotion analysis using basic sentiment keywords
-function analyzeTextBasic(text) {
-  const words = text.toLowerCase().split(/\s+/);
-  
-  // Basic emotion keyword mapping
-  const emotionKeywords = {
-    joy: ['happy', 'excited', 'thrilled', 'delighted', 'joyful', 'cheerful', 'elated', 'glad', 'pleased', 'amazing', 'wonderful', 'fantastic', 'great', 'awesome', 'love', 'adore'],
-    sadness: ['sad', 'depressed', 'miserable', 'unhappy', 'crying', 'tears', 'awful', 'terrible', 'horrible', 'devastating', 'heartbroken', 'disappointed'],
-    anger: ['angry', 'furious', 'mad', 'rage', 'hate', 'disgusted', 'annoyed', 'irritated', 'frustrated', 'pissed', 'outraged'],
-    fear: ['scared', 'afraid', 'terrified', 'worried', 'anxious', 'nervous', 'panic', 'frightened', 'alarmed'],
-    surprise: ['surprised', 'shocked', 'amazed', 'astonished', 'wow', 'incredible', 'unbelievable', 'unexpected'],
-    disgust: ['disgusting', 'gross', 'nasty', 'revolting', 'sick', 'yuck', 'awful', 'repulsive'],
-    trust: ['trust', 'confident', 'reliable', 'faithful', 'loyal', 'honest', 'dependable', 'sure'],
-    anticipation: ['excited', 'eager', 'hopeful', 'expecting', 'looking forward', 'anticipating', 'ready']
-  };
-  
-  // Count emotion words
-  const emotionScores = {
-    joy: 0, sadness: 0, anger: 0, fear: 0, 
-    surprise: 0, disgust: 0, trust: 0, anticipation: 0
-  };
-  
-  let totalEmotionWords = 0;
-  
-  words.forEach(word => {
-    Object.keys(emotionKeywords).forEach(emotion => {
-      if (emotionKeywords[emotion].includes(word)) {
-        emotionScores[emotion]++;
-        totalEmotionWords++;
-      }
-    });
-  });
-  
-  // Calculate probabilities
-  let emotions = {};
-  if (totalEmotionWords > 0) {
-    Object.keys(emotionScores).forEach(emotion => {
-      emotions[emotion] = emotionScores[emotion] / totalEmotionWords;
-    });
-    
-    // Normalize to sum to 1
-    const total = Object.values(emotions).reduce((a, b) => a + b, 0);
-    if (total > 0) {
-      Object.keys(emotions).forEach(emotion => {
-        emotions[emotion] = emotions[emotion] / total;
-      });
-    }
-  } else {
-    // No emotion words found, return neutral
-    Object.keys(emotionScores).forEach(emotion => {
-      emotions[emotion] = 0.125; // Equal probability
-    });
-  }
-  
-  // Find dominant emotion
-  const dominantEmotion = Object.keys(emotions).reduce((a, b) => 
-    emotions[a] > emotions[b] ? a : b
-  );
-  
-  // Create word analysis
-  const wordAnalysis = words.map(word => {
-    let wordEmotion = 'neutral';
-    let wordConfidence = 0.125;
-    
-    Object.keys(emotionKeywords).forEach(emotion => {
-      if (emotionKeywords[emotion].includes(word)) {
-        wordEmotion = emotion;
-        wordConfidence = 0.8;
-      }
-    });
-    
-    return {
-      word: word,
-      clean_word: word,
-      emotion: wordEmotion,
-      confidence: wordConfidence,
-      valence: wordEmotion === 'joy' ? 0.8 : wordEmotion === 'sadness' ? 0.2 : 0.5,
-      arousal: ['anger', 'fear', 'surprise'].includes(wordEmotion) ? 0.8 : 0.5,
-      sentiment: ['joy', 'trust', 'anticipation'].includes(wordEmotion) ? 'positive' : 
-                ['sadness', 'anger', 'fear', 'disgust'].includes(wordEmotion) ? 'negative' : 'neutral',
-      found: wordEmotion !== 'neutral'
-    };
-  });
-  
-  return {
-    overall_emotion: dominantEmotion,
-    confidence: Math.max(...Object.values(emotions)),
-    emotions: emotions,
-    word_analysis: wordAnalysis,
-    word_count: words.length,
-    analyzed_words: wordAnalysis.filter(w => w.found).length,
-    coverage: wordAnalysis.filter(w => w.found).length / words.length,
-    vad: {
-      valence: dominantEmotion === 'joy' ? 0.8 : dominantEmotion === 'sadness' ? 0.2 : 0.5,
-      arousal: ['anger', 'fear', 'surprise'].includes(dominantEmotion) ? 0.8 : 0.5,
-      dominance: ['anger', 'trust'].includes(dominantEmotion) ? 0.8 : 0.5
-    },
-    sentiment: {
-      polarity: ['joy', 'trust', 'anticipation'].includes(dominantEmotion) ? 'positive' : 
-               ['sadness', 'anger', 'fear', 'disgust'].includes(dominantEmotion) ? 'negative' : 'neutral',
-      strength: Math.max(...Object.values(emotions))
-    }
-  };
+// REAL emotion analysis using the actual word database + DeepSeek
+async function analyzeTextReal(text) {
+  console.log(`🔍 Using REAL emotion analysis engine...`);
+  return await emotionEngine.analyzeText(text);
 }
 
 module.exports = async function handler(req, res) {
@@ -161,9 +64,9 @@ module.exports = async function handler(req, res) {
     console.log(`📊 Text length: ${trimmedText.length} characters`);
     console.log(`📝 Word count: ${trimmedText.split(/\s+/).length} words`);
     
-    // Run the basic emotion analysis
+    // Run the REAL emotion analysis
     const startTime = Date.now();
-    const emotionAnalysis = analyzeTextBasic(trimmedText);
+    const emotionAnalysis = await analyzeTextReal(trimmedText);
     const processingTime = (Date.now() - startTime) / 1000;
     
     console.log(`✅ Text analysis completed in ${processingTime.toFixed(2)}s`);
