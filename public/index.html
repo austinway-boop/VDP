@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Emotion Analysis API</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+            background: #f8fafc;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #1e293b; margin-bottom: 0.5rem; }
+        .subtitle { color: #64748b; margin-bottom: 2rem; }
+        .endpoint {
+            background: #f1f5f9;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            border-left: 4px solid #3b82f6;
+        }
+        .method { 
+            display: inline-block;
+            background: #3b82f6;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+        .method.get { background: #10b981; }
+        .method.post { background: #f59e0b; }
+        code {
+            background: #e2e8f0;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+        .example {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.875rem;
+        }
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background: #10b981;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Speech Emotion Analysis API</h1>
+        <p class="subtitle">Advanced AI-powered speech recognition and emotion analysis</p>
+        
+        <div class="status">✅ API Active</div>
+        
+        <h2>Available Endpoints</h2>
+        
+        <div class="endpoint">
+            <p><span class="method get">GET</span> <code>/api/stats</code></p>
+            <p>Get system statistics and capabilities</p>
+        </div>
+        
+        <div class="endpoint">
+            <p><span class="method post">POST</span> <code>/api/analyze-text</code></p>
+            <p>Analyze text for emotions and sentiment</p>
+            <p><strong>Body:</strong> <code>{"text": "Your text here"}</code></p>
+        </div>
+        
+        <div class="endpoint">
+            <p><span class="method post">POST</span> <code>/api/analyze-audio</code></p>
+            <p>Upload audio files for speech recognition and emotion analysis</p>
+            <p><strong>Body:</strong> Form data with <code>audio</code> file field</p>
+        </div>
+        
+        <h2>Quick Test</h2>
+        <p>Try the stats endpoint:</p>
+        <div class="example">curl <span id="base-url">https://your-project.vercel.app</span>/api/stats</div>
+        
+        <h2>Documentation</h2>
+        <p>📖 <a href="https://github.com/austinway-boop/VDP/blob/main/API_DOCUMENTATION.md" target="_blank">Complete API Documentation</a></p>
+        <p>🔧 <a href="https://github.com/austinway-boop/VDP/blob/main/ENVIRONMENT_VARIABLES.md" target="_blank">Environment Setup Guide</a></p>
+        
+        <h2>Features</h2>
+        <ul>
+            <li>🎭 8-category emotion detection</li>
+            <li>🎤 Multi-engine speech recognition</li>
+            <li>😄 Laughter detection and analysis</li>
+            <li>📊 Word-level emotion breakdown</li>
+            <li>⚡ Real-time processing</li>
+        </ul>
+    </div>
+    
+    <script>
+        // Update the base URL dynamically
+        document.getElementById('base-url').textContent = window.location.origin;
+    </script>
+</body>
+</html>

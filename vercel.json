@@ -4,6 +4,12 @@
       "maxDuration": 300
     }
   },
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/api/stats"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
