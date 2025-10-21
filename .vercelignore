@@ -1,6 +1,5 @@
 # Ignore Flask server files that confuse Vercel's framework detection
-enhanced_system/enhanced_speech_server.py
-enhanced_system/admin_panel.py
+enhanced_system/
 deprecated/
 archive/
 docs/
@@ -8,16 +7,24 @@ logs/
 scripts/
 tests/
 start.py
-ultra_fast_recovery.py
-word_processor.py
 
 # Ignore training data and large files
-enhanced_system/training_data/
 words/
 ffmpeg
 
-# Ignore development files
+# Ignore development and temporary files
 *.log
 .DS_Store
 *.pyc
 __pycache__/
+test/
+.pytest_cache/
+.coverage
+
+# Keep only essential files for Vercel deployment:
+# - /api/ (serverless functions)
+# - /public/ (static files)
+# - package.json (Node.js config)
+# - requirements.txt (Python deps)
+# - vercel.json (Vercel config)
+# - README.md (documentation)

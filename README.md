@@ -2,11 +2,17 @@
 
 > Advanced AI-powered speech recognition and emotion analysis system deployable on Vercel
 
-## 🚀 Quick Start
+## 🚀 Live Demo
 
-Deploy this API to Vercel in minutes:
+**🌐 Your API is LIVE at: [https://vdp-peach.vercel.app/](https://vdp-peach.vercel.app/)**
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/speech-emotion-api)
+Test it right now:
+```bash
+curl https://vdp-peach.vercel.app/api/stats
+```
+
+Deploy your own version:
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/austinway-boop/VDP)
 
 ## 🎯 What This API Does
 
@@ -205,7 +211,7 @@ curl -X POST https://your-project.vercel.app/api/analyze-audio \
 
 ```javascript
 // Text analysis
-const response = await fetch('https://your-project.vercel.app/api/analyze-text', {
+const response = await fetch('https://vdp-peach.vercel.app/api/analyze-text', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ text: 'I am extremely happy today!' })
@@ -219,7 +225,7 @@ console.log('Confidence:', result.result.emotion_analysis.confidence);
 const formData = new FormData();
 formData.append('audio', audioFile);
 
-const audioResponse = await fetch('https://your-project.vercel.app/api/analyze-audio', {
+const audioResponse = await fetch('https://vdp-peach.vercel.app/api/analyze-audio', {
   method: 'POST',
   body: formData
 });
@@ -236,7 +242,7 @@ import requests
 
 # Text analysis
 response = requests.post(
-    'https://your-project.vercel.app/api/analyze-text',
+    'https://vdp-peach.vercel.app/api/analyze-text',
     json={'text': 'I feel amazing about this project!'}
 )
 
@@ -248,7 +254,7 @@ print(f"Confidence: {result['result']['emotion_analysis']['confidence']:.2%}")
 with open('recording.wav', 'rb') as audio_file:
     files = {'audio': audio_file}
     response = requests.post(
-        'https://your-project.vercel.app/api/analyze-audio',
+        'https://vdp-peach.vercel.app/api/analyze-audio',
         files=files
     )
 
@@ -259,13 +265,16 @@ print(f"Transcription: {result['result']['transcription']}")
 ### cURL
 
 ```bash
+# Test the live API right now!
+curl https://vdp-peach.vercel.app/api/stats
+
 # Analyze text
-curl -X POST https://your-project.vercel.app/api/analyze-text \
+curl -X POST https://vdp-peach.vercel.app/api/analyze-text \
   -H "Content-Type: application/json" \
   -d '{"text": "This is absolutely wonderful news!"}'
 
 # Analyze audio
-curl -X POST https://your-project.vercel.app/api/analyze-audio \
+curl -X POST https://vdp-peach.vercel.app/api/analyze-audio \
   -F "audio=@recording.wav" \
   -F "retry_mode=normal"
 ```
@@ -355,8 +364,10 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Ready to deploy?** Click the button below to get started:
+**🎉 SUCCESS! This API is now live and working at [https://vdp-peach.vercel.app/](https://vdp-peach.vercel.app/)**
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/speech-emotion-api)
+Want to deploy your own version? Click below:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/austinway-boop/VDP)
 
 *Last updated: January 2024 - Production Ready*

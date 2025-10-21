@@ -17,9 +17,13 @@ The Speech Emotion Analysis API provides advanced AI-powered speech recognition 
 
 ## Base URL
 
+**🌐 Live API**: [https://vdp-peach.vercel.app](https://vdp-peach.vercel.app)
+
 ```
-https://your-project.vercel.app
+https://vdp-peach.vercel.app
 ```
+
+**Test it now**: `curl https://vdp-peach.vercel.app/api/stats`
 
 ## Authentication
 
@@ -59,7 +63,7 @@ Analyzes uploaded audio files for speech recognition and emotion detection.
 #### Example Request
 
 ```bash
-curl -X POST https://your-project.vercel.app/api/analyze-audio \
+curl -X POST https://vdp-peach.vercel.app/api/analyze-audio \
   -F "audio=@recording.wav" \
   -F "retry_mode=normal"
 ```
@@ -195,7 +199,7 @@ Analyzes text directly for emotion detection and sentiment analysis.
 #### Example Request
 
 ```bash
-curl -X POST https://your-project.vercel.app/api/analyze-text \
+curl -X POST https://vdp-peach.vercel.app/api/analyze-text \
   -H "Content-Type: application/json" \
   -d '{"text": "I am feeling really excited about this new project!"}'
 ```
@@ -267,7 +271,7 @@ Retrieves system statistics and capabilities information.
 #### Example Request
 
 ```bash
-curl https://your-project.vercel.app/api/stats
+curl https://vdp-peach.vercel.app/api/stats
 ```
 
 #### Response Format
