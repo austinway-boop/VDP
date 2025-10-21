@@ -71,6 +71,11 @@
         <p class="subtitle">Advanced AI-powered speech recognition and emotion analysis</p>
         
         <div class="status">✅ API Active</div>
+        <div id="api-stats" style="margin: 1rem 0; padding: 1rem; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #28a745;">
+            <strong>📊 Live API Stats:</strong>
+            <div id="stats-content">Loading...</div>
+            <button onclick="refreshStats()" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Refresh</button>
+        </div>
         
         <h2>Available Endpoints</h2>
         
@@ -92,7 +97,16 @@
         </div>
         
         <h2>Quick Test</h2>
-        <p>Try the stats endpoint:</p>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1rem 0;">
+            <button onclick="testTextAPI()" style="padding: 0.75rem; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;">
+                🎭 Test Text Analysis
+            </button>
+            <button onclick="testAudioAPI()" style="padding: 0.75rem; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;">
+                🎤 Test Audio Endpoint
+            </button>
+        </div>
+        
+        <p>Or try the stats endpoint:</p>
         <div class="example">curl <span id="base-url">https://your-project.vercel.app</span>/api/stats</div>
         
         <h2>Documentation</h2>
@@ -112,6 +126,73 @@
     <script>
         // Update the base URL dynamically
         document.getElementById('base-url').textContent = window.location.origin;
+        
+        // Load API stats on page load
+        async function loadAPIStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const result = await response.json();
+                
+                if (result.success && result.stats.api_calls) {
+                    const calls = result.stats.api_calls;
+                    document.getElementById('stats-content').innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
+                            <div><strong>Total Calls:</strong> ${calls.total_calls}</div>
+                            <div><strong>Stats:</strong> ${calls.stats_calls}</div>
+                            <div><strong>Text Analysis:</strong> ${calls.text_analysis_calls}</div>
+                            <div><strong>Audio Calls:</strong> ${calls.audio_analysis_calls}</div>
+                        </div>
+                        <div style="margin-top: 0.5rem; font-size: 0.9em; color: #666;">
+                            Last updated: ${new Date(result.stats.api_info.timestamp).toLocaleTimeString()}
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('stats-content').innerHTML = 'Stats unavailable';
+                }
+            } catch (error) {
+                document.getElementById('stats-content').innerHTML = `Error loading stats: ${error.message}`;
+            }
+        }
+        
+        function refreshStats() {
+            document.getElementById('stats-content').innerHTML = 'Loading...';
+            loadAPIStats();
+        }
+        
+        // Test buttons
+        async function testTextAPI() {
+            try {
+                const response = await fetch('/api/analyze-text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: 'I am extremely excited and happy about this test!' })
+                });
+                const result = await response.json();
+                alert(`Text Analysis Result:\nEmotion: ${result.result?.emotion_analysis?.overall_emotion}\nConfidence: ${(result.result?.emotion_analysis?.confidence * 100).toFixed(1)}%`);
+                refreshStats();
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+        
+        async function testAudioAPI() {
+            try {
+                const response = await fetch('/api/analyze-audio', {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                alert(`Audio API Response:\n${result.message}\n\nCalls this session: ${result.api_calls?.audio_calls || 'unknown'}`);
+                refreshStats();
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+        
+        // Load stats when page loads
+        loadAPIStats();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadAPIStats, 30000);
     </script>
 </body>
 </html>

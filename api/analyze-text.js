@@ -1,6 +1,9 @@
 // Vercel Serverless Function for Text Emotion Analysis
 // Analyzes emotions directly from text input using DeepSeek API
 
+// Simple in-memory counter (resets on function restart)
+let textAnalysisCalls = 0;
+
 // Simple emotion analysis using basic sentiment keywords
 function analyzeTextBasic(text) {
   const words = text.toLowerCase().split(/\s+/);
@@ -124,6 +127,10 @@ module.exports = async function handler(req, res) {
   }
   
   try {
+    // Increment counter
+    textAnalysisCalls++;
+    console.log(`🔍 Text analysis called (${textAnalysisCalls} times total)`);
+    
     const { text } = req.body;
     
     // Validate input
@@ -179,6 +186,10 @@ module.exports = async function handler(req, res) {
           character_count: trimmedText.length,
           word_count: trimmedText.split(/\s+/).length,
           sentence_count: trimmedText.split(/[.!?]+/).filter(s => s.trim().length > 0).length
+        },
+        api_calls: {
+          text_analysis_calls: textAnalysisCalls,
+          this_session: textAnalysisCalls
         }
       }
     });

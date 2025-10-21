@@ -1,4 +1,10 @@
+// Simple in-memory counter (resets on function restart)
+let audioCalls = 0;
+
 module.exports = (req, res) => {
+  // Increment audio counter
+  audioCalls++;
+  
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -16,7 +22,7 @@ module.exports = (req, res) => {
   }
   
   try {
-    console.log('🎯 Audio endpoint called');
+    console.log(`🎯 Audio endpoint called (${audioCalls} times total)`);
     console.log('📊 Content-Type:', req.headers['content-type']);
     console.log('📊 Method:', req.method);
     
@@ -40,6 +46,10 @@ module.exports = (req, res) => {
         method: req.method,
         content_type: req.headers['content-type'],
         timestamp: new Date().toISOString()
+      },
+      api_calls: {
+        audio_calls: audioCalls,
+        this_session: audioCalls
       }
     });
     
