@@ -1,4 +1,5 @@
 {
+  "_comment": "Speech Emotion Analysis API - Production Ready",
   "functions": {
     "api/*.js": {
       "maxDuration": 300
