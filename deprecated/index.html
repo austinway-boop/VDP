@@ -14,6 +14,9 @@
             <button id="recordBtn" class="record-btn">Record 10s</button>
             <button id="uploadBtn" class="upload-btn">Upload File</button>
             <button id="emotionBtn" class="emotion-btn" style="display:none;">🎭 Analyze Emotion</button>
+            <button id="liveSpeechBtn" class="live-speech-btn" onclick="audioRecorder.analyzeBrowserSpeech()" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px;">
+                🎤 Live Speech Analysis
+            </button>
             <input type="file" id="fileInput" accept="audio/*">
         </div>
 

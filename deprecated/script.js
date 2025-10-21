@@ -1914,6 +1914,88 @@ class AudioRecorder {
         }
     }
 
+    // NEW: Browser-based speech recognition for real audio processing
+    async analyzeBrowserSpeech() {
+        console.log('🎤 Starting browser-based speech recognition...');
+        
+        // Check if browser supports speech recognition
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            this.showStatus('Speech recognition not supported in this browser. Please use Chrome or Edge.', 'error');
+            return;
+        }
+        
+        try {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            
+            this.showStatus('🎤 Listening... Please speak now!', 'info');
+            
+            recognition.onresult = async (event) => {
+                const transcript = event.results[0][0].transcript;
+                const confidence = event.results[0][0].confidence;
+                
+                console.log('🎤 Speech recognized:', transcript);
+                console.log('🎯 Confidence:', confidence);
+                
+                this.showStatus('🧠 Analyzing emotions in your speech...', 'info');
+                
+                try {
+                    // Send transcribed text to emotion analysis API
+                    const response = await fetch('https://vdp-peach.vercel.app/api/analyze-text', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ text: transcript })
+                    });
+                    
+                    const result = await response.json();
+                    console.log('✅ Emotion Analysis Result:', result);
+                    
+                    if (result.success && result.result) {
+                        // Add speech recognition info to the result
+                        result.result.speech_recognition = {
+                            transcript: transcript,
+                            confidence: confidence,
+                            method: 'browser_web_speech_api'
+                        };
+                        
+                        // Display the complete audio + emotion analysis!
+                        this.displayEmotionResults(result.result);
+                        this.showStatus('✅ Complete audio emotion analysis finished!', 'success');
+                    } else {
+                        throw new Error(result.error || 'Emotion analysis failed');
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Emotion analysis error:', error);
+                    this.showStatus(`Emotion analysis failed: ${error.message}`, 'error');
+                }
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('❌ Speech recognition error:', event.error);
+                this.showStatus(`Speech recognition failed: ${event.error}`, 'error');
+            };
+            
+            recognition.onend = () => {
+                console.log('🎤 Speech recognition ended');
+            };
+            
+            // Start recognition
+            recognition.start();
+            
+        } catch (error) {
+            console.error('❌ Browser speech recognition error:', error);
+            this.showStatus(`Speech recognition setup failed: ${error.message}`, 'error');
+        }
+    }
+
     showRetryButton() {
         // Create retry button if it doesn't exist
         let retryBtn = document.getElementById('retryAudioBtn');
