@@ -3,7 +3,7 @@
     "api/*.js": {
       "maxDuration": 300
     },
-    "python/*.py": {
+    "api/*.py": {
       "maxDuration": 300
     }
   },

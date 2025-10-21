@@ -7,12 +7,12 @@ import path from 'path';
 // Helper function to run Python text analysis
 async function runTextAnalysis(text) {
   return new Promise((resolve, reject) => {
-    const pythonScript = path.join(process.cwd(), 'python', 'text_analyzer.py');
+    const pythonScript = path.join(process.cwd(), 'api', 'text_analyzer.py');
     const python = spawn('python3', [pythonScript], {
       cwd: process.cwd(),
       env: {
         ...process.env,
-        PYTHONPATH: path.join(process.cwd(), 'python'),
+        PYTHONPATH: path.join(process.cwd(), 'api'),
       }
     });
     

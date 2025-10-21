@@ -17,7 +17,7 @@ export const config = {
 // Helper function to run Python scripts
 async function runPythonAnalysis(audioFilePath, retryMode = 'normal') {
   return new Promise((resolve, reject) => {
-    const pythonScript = path.join(process.cwd(), 'python', 'audio_analyzer.py');
+    const pythonScript = path.join(process.cwd(), 'api', 'audio_analyzer.py');
     const args = [pythonScript, audioFilePath];
     
     if (retryMode === 'aggressive') {
@@ -28,7 +28,7 @@ async function runPythonAnalysis(audioFilePath, retryMode = 'normal') {
       cwd: process.cwd(),
       env: {
         ...process.env,
-        PYTHONPATH: path.join(process.cwd(), 'python'),
+        PYTHONPATH: path.join(process.cwd(), 'api'),
       }
     });
     

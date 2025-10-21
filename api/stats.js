@@ -7,12 +7,12 @@ import path from 'path';
 // Helper function to get system stats from Python
 async function getSystemStats() {
   return new Promise((resolve, reject) => {
-    const pythonScript = path.join(process.cwd(), 'python', 'get_stats.py');
+    const pythonScript = path.join(process.cwd(), 'api', 'get_stats.py');
     const python = spawn('python3', [pythonScript], {
       cwd: process.cwd(),
       env: {
         ...process.env,
-        PYTHONPATH: path.join(process.cwd(), 'python'),
+        PYTHONPATH: path.join(process.cwd(), 'api'),
       }
     });
     
