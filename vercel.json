@@ -1,7 +1,6 @@
 {
   "version": 2,
   "name": "speech-emotion-api",
-  "description": "Advanced Speech Emotion Analysis API with AI-powered transcription and emotion detection",
   "functions": {
     "api/*.js": {
       "runtime": "nodejs18.x",
