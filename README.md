@@ -115,7 +115,7 @@ curl -X POST https://your-project.vercel.app/api/analyze-text \
 
 ### Setup
 
-```bash
+   ```bash
 # Clone the repository
 git clone https://github.com/your-username/speech-emotion-api.git
 cd speech-emotion-api
@@ -136,7 +136,7 @@ npm run dev
 
 ### Development Commands
 
-```bash
+   ```bash
 npm run dev          # Start development server
 npm test            # Run test suite
 npm run build       # Build for production (not needed for Vercel)
@@ -359,4 +359,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/speech-emotion-api)
 
-*Last updated: January 2024*
+*Last updated: January 2024 - Production Ready*
