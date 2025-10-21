@@ -1,14 +1,12 @@
 // Vercel Serverless Function for Audio Analysis
 // Converts audio to text and analyzes emotions
 
-import formidable from 'formidable';
-import fs from 'fs';
-import path from 'path';
-import { spawn } from 'child_process';
-import { promisify } from 'util';
+const formidable = require('formidable');
+const fs = require('fs');
+const path = require('path');
 
 // Disable body parser to handle multipart/form-data
-export const config = {
+exports.config = {
   api: {
     bodyParser: false,
   },
@@ -62,7 +60,7 @@ async function runPythonAnalysis(audioFilePath, retryMode = 'normal') {
   });
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');

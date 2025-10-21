@@ -1,8 +1,8 @@
 // Vercel Serverless Function for System Statistics
 // Returns information about the emotion analysis system
 
-import { spawn } from 'child_process';
-import path from 'path';
+const { spawn } = require('child_process');
+const path = require('path');
 
 // Helper function to get system stats from Python
 async function getSystemStats() {
@@ -46,7 +46,7 @@ async function getSystemStats() {
   });
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
