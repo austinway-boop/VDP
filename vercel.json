@@ -7,13 +7,6 @@
       "maxDuration": 300
     }
   },
-  "env": {
-    "DEEPSEEK_API_KEY": "@deepseek_api_key",
-    "OPENAI_API_KEY": "@openai_api_key",
-    "BING_KEY": "@bing_speech_key",
-    "IBM_USERNAME": "@ibm_watson_username",
-    "IBM_PASSWORD": "@ibm_watson_password"
-  },
   "headers": [
     {
       "source": "/api/(.*)",
