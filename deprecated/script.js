@@ -1844,6 +1844,76 @@ class AudioRecorder {
         this.elements.statusMessage.classList.remove('visible');
     }
 
+    showAudioToTextFallback(message, suggestion) {
+        console.log('🔄 Showing audio to text fallback UI');
+        
+        // Create fallback UI in the emotion results area
+        const emotionResults = document.getElementById('emotionResults');
+        if (emotionResults) {
+            emotionResults.innerHTML = `
+                <div class="audio-fallback" style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px dashed #6c757d;">
+                    <h3 style="color: #495057; margin-bottom: 15px;">🎤 → 📝 Audio to Text</h3>
+                    <p style="color: #6c757d; margin-bottom: 20px;">${message}</p>
+                    <div style="margin-bottom: 15px;">
+                        <label for="manual-text" style="display: block; font-weight: bold; margin-bottom: 8px;">Type what you said:</label>
+                        <textarea id="manual-text" placeholder="I said something like..." 
+                                style="width: 100%; height: 80px; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px;"></textarea>
+                    </div>
+                    <button onclick="audioRecorder.analyzeManualText()" 
+                            style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer;">
+                        🎭 Analyze Text Emotion
+                    </button>
+                    <p style="font-size: 12px; color: #6c757d; margin-top: 10px;">
+                        💡 The text analysis works great and gives you the same emotion detection!
+                    </p>
+                </div>
+            `;
+        }
+        
+        this.showStatus('Audio recorded! Please type what you said above for emotion analysis.', 'info');
+    }
+
+    async analyzeManualText() {
+        const textArea = document.getElementById('manual-text');
+        const text = textArea?.value?.trim();
+        
+        if (!text) {
+            this.showStatus('Please type what you said in the text box', 'error');
+            return;
+        }
+        
+        console.log('🔍 Analyzing manual text:', text);
+        
+        try {
+            // Show loading state
+            this.showStatus('🧠 Analyzing emotions in your text...', 'info');
+            
+            // Call the working text analysis API
+            const response = await fetch('https://vdp-peach.vercel.app/api/analyze-text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: text })
+            });
+            
+            const result = await response.json();
+            console.log('✅ Text Analysis Result:', result);
+            
+            if (result.success && result.result) {
+                // Display the real emotion analysis results!
+                this.displayEmotionResults(result.result);
+                this.showStatus('✅ Text emotion analysis complete!', 'success');
+            } else {
+                throw new Error(result.error || 'Text analysis failed');
+            }
+            
+        } catch (error) {
+            console.error('❌ Text analysis error:', error);
+            this.showStatus(`Text analysis failed: ${error.message}`, 'error');
+        }
+    }
+
     showRetryButton() {
         // Create retry button if it doesn't exist
         let retryBtn = document.getElementById('retryAudioBtn');
@@ -1963,6 +2033,10 @@ class AudioRecorder {
                 if (result.result.unknown_words > 0) {
                     this.showStatus(`Found ${result.result.unknown_words} uncertain words - saved for training`, 'info');
                 }
+            } else if (result.error && result.error.includes('Audio analysis is not available in the serverless environment')) {
+                // Handle serverless audio limitation properly
+                console.log('ℹ️ Audio analysis not available in serverless - showing text input fallback');
+                this.showAudioToTextFallback(result.message, result.suggestion);
             } else {
                 console.error('API Error:', result);
                 // Handle speech recognition failures with helpful messages
