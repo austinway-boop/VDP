@@ -1,0 +1,26 @@
+{
+  "word_id": "1761002135_im_1d45db7e",
+  "original_word": "i'm",
+  "clean_word": "im",
+  "word_index": 1,
+  "total_words": 9,
+  "full_text": "hello i'm having an amazing day wait wait wait",
+  "original_audio_path": "training_data/reviewed_clips/1760657623_196f42c5.wav",
+  "timestamp": 1761002135,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "source": "custom_vocabulary",
+    "audio_hash": "196f42c52a84682a7e8b958c58b5d094"
+  },
+  "estimated_position": "Word 2 of 9",
+  "context": {
+    "before": "hello",
+    "target": "i'm",
+    "after": "having an",
+    "full_context": "hello i'm having an"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

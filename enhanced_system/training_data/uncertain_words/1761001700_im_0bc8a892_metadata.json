@@ -1,0 +1,41 @@
+{
+  "word_id": "1761001700_im_0bc8a892",
+  "original_word": "i'm",
+  "clean_word": "im",
+  "word_index": 16,
+  "total_words": 20,
+  "full_text": "what's he like my laughing detection works? hopefully it does. because no one's laughing right now. i'm laughing you. no.",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpaonvcms4.wav",
+  "timestamp": 1761001700,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "whisper_local",
+    "service_confidence": 0.95,
+    "estimated_confidence": 0.8,
+    "final_confidence": 0.89,
+    "audio_hash": "a47e4989b5e0c2b5b4d99a1a4613e988",
+    "all_results": [
+      {
+        "service": "whisper_local",
+        "text": "what's he like my laughing detection works? hopefully it does. because no one's laughing right now. i'm laughing you. no.",
+        "confidence": 0.95
+      },
+      {
+        "service": "google",
+        "text": "we'll see if my laughing detection works hopefully it does because no one's laughing right now i'm laughing again",
+        "confidence": 0.89167929
+      }
+    ]
+  },
+  "estimated_position": "Word 17 of 20",
+  "context": {
+    "before": "right now.",
+    "target": "i'm",
+    "after": "laughing you.",
+    "full_context": "right now. i'm laughing you."
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

@@ -1,183 +1,362 @@
-# 🎤 Enhanced Speech Emotion Analysis System
+# Speech Emotion Analysis API
 
-A comprehensive speech-to-text and emotion analysis system with confidence-based training and word-level uncertainty detection.
+> Advanced AI-powered speech recognition and emotion analysis system deployable on Vercel
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Python 3.9+
-- Required packages: `pip install -r requirements.txt`
+Deploy this API to Vercel in minutes:
 
-### Running the System
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/speech-emotion-api)
 
-1. **Start the Enhanced System**:
-   ```bash
-   cd enhanced_system
-   python3 enhanced_speech_server.py
-   ```
-   Access at: `http://localhost:5003`
+## 🎯 What This API Does
 
-2. **Start the Admin Training Panel**:
-   ```bash
-   cd enhanced_system  
-   python3 admin_panel.py
-   ```
-   Access at: `http://localhost:5002`
+Transform speech and text into detailed emotional insights:
 
-## 📁 Project Structure
+- **🎤 Speech Recognition**: Convert audio files to text with high accuracy
+- **🎭 Emotion Analysis**: Detect 8 emotion categories with confidence scores
+- **😄 Laughter Detection**: Automatically detect and analyze laughter
+- **🎵 Music Detection**: Identify background music and filter its influence
+- **📊 Detailed Analytics**: Word-level analysis, sentiment, and psychological dimensions
+- **⚡ Real-time Processing**: Optimized for fast API responses
 
-```
-CircuitAlg/
-├── enhanced_system/           # 🎯 Main application
-│   ├── enhanced_speech_analyzer.py    # Core analysis engine
-│   ├── enhanced_speech_server.py      # Main web server
-│   ├── admin_panel.py                 # Training admin panel
-│   ├── enhanced_interface.html        # Main UI
-│   ├── batch_word_processor.py        # Word processing
-│   ├── templates/                     # HTML templates
-│   ├── training_data/                 # Training data storage
-│   └── emotion_analysis_results/      # Analysis outputs
-├── words/                     # 📚 Emotion word database
-├── docs/                      # 📖 Documentation
-│   ├── archive/              # Historical documentation
-│   └── guides/               # User guides
-├── scripts/                   # 🔧 Utility scripts
-├── tests/                     # 🧪 Test files
-├── deprecated/                # 📦 Legacy code
-├── archive/                   # 🗄️ Archive storage
-└── requirements.txt           # 📋 Dependencies
-```
+## 📋 Table of Contents
+
+- [Features](#features)
+- [API Endpoints](#api-endpoints)
+- [Quick Deploy](#quick-deploy)
+- [Local Development](#local-development)
+- [Environment Variables](#environment-variables)
+- [Testing](#testing)
+- [Documentation](#documentation)
+- [Examples](#examples)
+- [Support](#support)
 
 ## ✨ Features
 
-### 🎵 Speech Analysis
-- **Real-time speech-to-text** with confidence scoring
-- **Multi-service recognition** (Google Speech, Sphinx)
-- **Confidence-based training** data collection
-- **Audio format support** (WAV, FLAC, WebM, MP3)
+### Core Capabilities
+- **Multi-engine Speech Recognition**: Whisper, Google Speech, Bing, IBM Watson
+- **8-Category Emotion Detection**: Joy, Trust, Anticipation, Surprise, Anger, Fear, Sadness, Disgust
+- **Advanced Confidence Scoring**: Reliability metrics for all analyses
+- **Laughter & Music Detection**: Context-aware emotion adjustment
+- **Word-level Analysis**: Individual word emotion breakdown
+- **VAD Scoring**: Valence, Arousal, Dominance psychological dimensions
 
-### 🎭 Emotion Analysis
-- **8-emotion classification** (joy, trust, anticipation, surprise, anger, fear, sadness, disgust)
-- **VAD scoring** (Valence, Arousal, Dominance)
-- **Word-by-word analysis** with color coding
-- **Batch text processing** capability
+### Technical Features
+- **Serverless Architecture**: Scales automatically on Vercel
+- **Multiple Audio Formats**: WAV, MP3, FLAC, WebM, AIFF support
+- **Intelligent Fallbacks**: Multiple recognition engines for reliability
+- **Error Handling**: Comprehensive error responses and recovery
+- **CORS Support**: Ready for web applications
+- **Rate Limiting**: Built-in protection and optimization
 
-### 😄 Laughter Detection
-- **Automatic laughter detection** in audio clips
-- **Precise timing** of laughter segments
-- **Confidence scoring** for each laughter burst
-- **Visual timeline** showing laughter locations
-- **Integration** with emotion analysis results
+## 🔗 API Endpoints
 
-### 🔍 Training System
-- **Uncertain clip detection** and review
-- **Word-level uncertainty** detection and correction
-- **Admin panel** for manual corrections
-- **Vocabulary learning** from corrections
-- **Confidence calibration** improvement
+### POST `/api/analyze-audio`
+Upload audio files for speech recognition and emotion analysis.
 
-### 🤖 Local Speech Model
-- **Three-tier recognition**: Google/Sphinx → Local Model → Final Fallback
-- **Trains on your corrections** for personalized accuracy
-- **Audio hash matching** for 100% accuracy on corrected files
-- **Feature-based recognition** using machine learning
-- **Optional Vosk integration** for offline recognition
-- **One-click training** from admin panel
+**Input**: Audio file (multipart/form-data)
+**Output**: Transcription + emotion analysis + laughter/music detection
 
-### 📊 Advanced Features
-- **Tab-based interface** for clips and words
-- **Real-time statistics** and progress tracking
-- **Audio playback** for review items
-- **Export capabilities** for analysis results
+### POST `/api/analyze-text`
+Analyze text directly for emotion detection and sentiment.
 
-## 🎨 User Interface
+**Input**: Text string (JSON)
+**Output**: Detailed emotion analysis with word-level breakdown
 
-### Main Interface
-- Modern blue/teal gradient design
-- Upload or record audio directly
-- Real-time analysis results
-- Word-by-word emotion visualization
-- Confidence indicators
+### GET `/api/stats`
+Get system statistics and capabilities.
 
-### Admin Training Panel
-- Dual-tab interface (Audio Clips / Word Reviews)
-- Statistics dashboard with progress tracking
-- Audio playback for uncertain items
-- Correction forms with skip options
-- Settings panel for confidence threshold
-- **Local model training interface** with one-click training
-- Real-time training statistics and recommendations
+**Output**: Database size, features, performance metrics
 
-## 🔧 Configuration
+## 🚀 Quick Deploy
 
-### Confidence Threshold
-Adjust the confidence threshold in the admin panel to control when audio gets flagged for review:
-- **Lower values** (0.3-0.5): More items flagged for training
-- **Higher values** (0.7-0.9): Only very uncertain items flagged
+### 1. Fork & Deploy
 
-### Word Database
-The system uses JSON files in the `words/` directory for emotion classification:
-- Organized alphabetically (a.json, b.json, etc.)
-- Each word has emotion probabilities and VAD scores
-- Easily extensible with new words
+1. Fork this repository
+2. Connect to Vercel: [vercel.com/new](https://vercel.com/new)
+3. Import your fork
+4. Add environment variables (see below)
+5. Deploy!
 
-## 📚 Documentation
+### 2. Environment Variables
 
-- **System Architecture**: `docs/ENHANCED_SYSTEM_SUMMARY.md`
-- **Training System**: `docs/WORD_LEVEL_TRAINING_SYSTEM.md`
-- **API Documentation**: `docs/archive/`
-- **Change History**: `docs/FINAL_SOLUTION.md`
+**Required**:
+```bash
+DEEPSEEK_API_KEY=sk-your-deepseek-key-here
+```
+
+**Optional** (for enhanced accuracy):
+```bash
+OPENAI_API_KEY=sk-your-openai-key-here
+BING_KEY=your-bing-speech-key
+IBM_USERNAME=apikey
+IBM_PASSWORD=your-ibm-watson-password
+```
+
+### 3. Test Your Deployment
+
+```bash
+# Test the API
+curl https://your-project.vercel.app/api/stats
+
+# Analyze text
+curl -X POST https://your-project.vercel.app/api/analyze-text \
+  -H "Content-Type: application/json" \
+  -d '{"text": "I am so excited about this!"}'
+```
+
+## 💻 Local Development
+
+### Prerequisites
+
+- Node.js 18+
+- Python 3.9+
+- Git
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/speech-emotion-api.git
+cd speech-emotion-api
+
+# Install Node.js dependencies
+npm install
+
+# Install Python dependencies
+pip install -r python/requirements.txt
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your API keys
+
+# Start development server
+npm run dev
+```
+
+### Development Commands
+
+```bash
+npm run dev          # Start development server
+npm test            # Run test suite
+npm run build       # Build for production (not needed for Vercel)
+npm run deploy      # Deploy to Vercel
+```
+
+## 🔧 Environment Variables
+
+### Required Variables
+
+| Variable | Description | Where to Get |
+|----------|-------------|--------------|
+| `DEEPSEEK_API_KEY` | Powers emotion analysis | [DeepSeek API](https://platform.deepseek.com/) |
+
+### Optional Variables
+
+| Variable | Description | Where to Get |
+|----------|-------------|--------------|
+| `OPENAI_API_KEY` | Enhanced speech recognition | [OpenAI API](https://platform.openai.com/api-keys) |
+| `BING_KEY` | Microsoft speech recognition | [Azure Cognitive Services](https://azure.microsoft.com/services/cognitive-services/speech-services/) |
+| `IBM_USERNAME` | IBM Watson speech recognition | [IBM Watson](https://www.ibm.com/cloud/watson-speech-to-text) |
+| `IBM_PASSWORD` | IBM Watson speech recognition | [IBM Watson](https://www.ibm.com/cloud/watson-speech-to-text) |
+
+**📖 Detailed setup guide**: [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)
 
 ## 🧪 Testing
 
-Run tests from the `tests/` directory:
+### Automated Tests
+
 ```bash
-cd tests
-python3 test_speech_recognition.py
-python3 test_word_loading.py
+# Node.js test suite
+npm test
+
+# Python test suite
+python test/test-audio.py
+
+# Test against deployed API
+TEST_BASE_URL=https://your-project.vercel.app npm test
 ```
 
-## 🔧 Utilities
+### Manual Testing
 
-Scripts in the `scripts/` directory:
-- `start_enhanced_system.py` - System startup
-- `create_basic_words.py` - Word database creation
-- `fix_neutral_words.py` - Database maintenance
+```bash
+# Test stats endpoint
+curl https://your-project.vercel.app/api/stats
 
-## 🗂️ Data Storage
+# Test text analysis
+curl -X POST https://your-project.vercel.app/api/analyze-text \
+  -H "Content-Type: application/json" \
+  -d '{"text": "I love this amazing product!"}'
 
-### Training Data
-- `uncertain_clips/` - Low confidence audio clips
-- `uncertain_words/` - Individual uncertain words
-- `reviewed_clips/` - Manually reviewed clips
-- `reviewed_words/` - Manually reviewed words
-- `corrections.json` - Training corrections database
+# Test audio analysis
+curl -X POST https://your-project.vercel.app/api/analyze-audio \
+  -F "audio=@recording.wav"
+```
 
-### Analysis Results
-- Real-time emotion analysis outputs
-- Session data and statistics
-- Confidence calibration data
+## 📚 Documentation
 
-## 🚀 Deployment
+- **[API Documentation](./API_DOCUMENTATION.md)**: Complete API reference with examples
+- **[Environment Variables](./ENVIRONMENT_VARIABLES.md)**: Detailed setup guide
+- **[Test Suite Documentation](./test/)**: Testing tools and examples
 
-The system is designed for local deployment with:
-- **Port 5003**: Main speech analysis interface
-- **Port 5002**: Admin training panel
-- **File-based storage**: No external database required
-- **Modular design**: Easy to extend and customize
+## 💡 Examples
 
-## 🤝 Contributing
+### JavaScript/Node.js
 
-1. Make changes in the `enhanced_system/` directory
-2. Test with the provided test files
-3. Update documentation in `docs/`
-4. Follow the existing code style and structure
+```javascript
+// Text analysis
+const response = await fetch('https://your-project.vercel.app/api/analyze-text', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ text: 'I am extremely happy today!' })
+});
+
+const result = await response.json();
+console.log('Primary emotion:', result.result.emotion_analysis.overall_emotion);
+console.log('Confidence:', result.result.emotion_analysis.confidence);
+
+// Audio analysis
+const formData = new FormData();
+formData.append('audio', audioFile);
+
+const audioResponse = await fetch('https://your-project.vercel.app/api/analyze-audio', {
+  method: 'POST',
+  body: formData
+});
+
+const audioResult = await audioResponse.json();
+console.log('Transcription:', audioResult.result.transcription);
+console.log('Emotion:', audioResult.result.emotion_analysis.overall_emotion);
+```
+
+### Python
+
+```python
+import requests
+
+# Text analysis
+response = requests.post(
+    'https://your-project.vercel.app/api/analyze-text',
+    json={'text': 'I feel amazing about this project!'}
+)
+
+result = response.json()
+print(f"Emotion: {result['result']['emotion_analysis']['overall_emotion']}")
+print(f"Confidence: {result['result']['emotion_analysis']['confidence']:.2%}")
+
+# Audio analysis
+with open('recording.wav', 'rb') as audio_file:
+    files = {'audio': audio_file}
+    response = requests.post(
+        'https://your-project.vercel.app/api/analyze-audio',
+        files=files
+    )
+
+result = response.json()
+print(f"Transcription: {result['result']['transcription']}")
+```
+
+### cURL
+
+```bash
+# Analyze text
+curl -X POST https://your-project.vercel.app/api/analyze-text \
+  -H "Content-Type: application/json" \
+  -d '{"text": "This is absolutely wonderful news!"}'
+
+# Analyze audio
+curl -X POST https://your-project.vercel.app/api/analyze-audio \
+  -F "audio=@recording.wav" \
+  -F "retry_mode=normal"
+```
+
+## 🎮 Use Cases
+
+### Content Analysis
+- **Social Media Monitoring**: Analyze user sentiment in posts and comments
+- **Customer Feedback**: Process support tickets and reviews for emotion insights
+- **Market Research**: Understand emotional responses to products and campaigns
+
+### Voice Applications
+- **Call Center Analytics**: Monitor customer satisfaction in real-time
+- **Voice Assistants**: Adapt responses based on user emotional state
+- **Mental Health Apps**: Track emotional patterns in speech
+
+### Gaming & Entertainment
+- **Player Emotion Tracking**: Adapt game difficulty based on emotional state
+- **Content Recommendation**: Suggest content based on current mood
+- **Interactive Experiences**: Create emotion-responsive applications
+
+## 🔒 Privacy & Security
+
+- **No Data Storage**: Audio and text are processed in real-time and not stored
+- **Secure Processing**: All analysis happens in isolated serverless functions
+- **API Key Protection**: Environment variables keep your keys secure
+- **CORS Support**: Configurable for your specific domains
+
+## 📈 Performance & Limits
+
+### Vercel Limits
+- **Function Timeout**: 5 minutes (300 seconds)
+- **File Size**: 50MB maximum
+- **Memory**: 1008MB available
+- **Concurrent Executions**: Based on your plan
+
+### Typical Performance
+- **Text Analysis**: 0.5-2 seconds
+- **Audio Analysis**: 2-10 seconds (depends on length)
+- **Stats Endpoint**: <0.5 seconds
+
+## 🆘 Support
+
+### Getting Help
+
+1. **Check the documentation**: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+2. **Review error messages**: API provides detailed error information
+3. **Test with examples**: Use the provided test scripts
+4. **Check environment variables**: Ensure all keys are set correctly
+
+### Common Issues
+
+**"DeepSeek API key not found"**
+- Set `DEEPSEEK_API_KEY` in Vercel environment variables
+- Redeploy after adding environment variables
+
+**"Speech recognition failed"**
+- Try different audio formats (WAV recommended)
+- Ensure audio has clear speech
+- Use "aggressive" retry mode for difficult audio
+
+**"Function timeout"**
+- Reduce audio file size
+- Try shorter audio clips
+- Check if all API services are responding
+
+### Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
 
 ## 📄 License
 
-This project is part of a speech emotion analysis research system.
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **DeepSeek AI**: Advanced language model for emotion analysis
+- **OpenAI Whisper**: State-of-the-art speech recognition
+- **Vercel**: Serverless deployment platform
+- **CircuitAlg Team**: Original speech analysis system
 
 ---
 
-**Last Updated**: October 2024  
-**Version**: Enhanced System v2.0
+**Ready to deploy?** Click the button below to get started:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/speech-emotion-api)
+
+*Last updated: January 2024*

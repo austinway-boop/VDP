@@ -18,10 +18,10 @@ class LaughterDetector:
         self.frame_length = 2048
         self.hop_length = 512
         
-        # Laughter characteristics (based on research)
+        # Laughter characteristics (based on research) - SLIGHTLY MORE SENSITIVE
         self.laughter_freq_range = (200, 4000)  # Hz range where laughter typically occurs
-        self.min_laughter_duration = 0.3  # Minimum duration in seconds
-        self.laughter_threshold = 0.6  # Confidence threshold for laughter detection
+        self.min_laughter_duration = 0.4  # Good minimum duration
+        self.laughter_threshold = 0.67  # Just a bit more sensitive (3% lower)
         
         print("😄 Laughter detector initialized")
     
@@ -261,31 +261,33 @@ class LaughterDetector:
         try:
             score_components = []
             
-            # 1. High energy bursts (laughter is typically energetic)
-            rms = features['rms_energy'][frame_idx]
-            energy_score = min(rms * 10, 1.0)  # Normalize to 0-1
-            score_components.append(energy_score * 0.25)
+            # Balanced laughter detection - not too strict, not too loose
             
-            # 2. Spectral characteristics
+            # 1. High energy bursts (laughter is typically energetic) - SLIGHTLY REDUCED
+            rms = features['rms_energy'][frame_idx]
+            energy_score = min(rms * 7, 1.0)  # Slightly reduced sensitivity
+            score_components.append(energy_score * 0.22)  # Reduced weight
+            
+            # 2. Spectral characteristics - SLIGHTLY REDUCED
             centroid = features['spectral_centroids'][frame_idx]
             bandwidth = features['spectral_bandwidth'][frame_idx]
             
             # Laughter typically has higher spectral centroid and bandwidth
-            centroid_score = min(centroid / 3000, 1.0)  # Normalize
-            bandwidth_score = min(bandwidth / 2000, 1.0)  # Normalize
-            score_components.append(centroid_score * 0.2)
-            score_components.append(bandwidth_score * 0.15)
+            centroid_score = min(centroid / 3200, 1.0)  # Slightly higher threshold
+            bandwidth_score = min(bandwidth / 2200, 1.0)  # Slightly higher threshold
+            score_components.append(centroid_score * 0.18)  # Reduced weight
+            score_components.append(bandwidth_score * 0.13)  # Reduced weight
             
-            # 3. Zero crossing rate (laughter has different patterns than speech)
+            # 3. Zero crossing rate (laughter has different patterns than speech) - SLIGHTLY REDUCED
             zcr = features['zero_crossing_rate'][frame_idx]
-            zcr_score = min(zcr * 50, 1.0)  # Normalize
-            score_components.append(zcr_score * 0.15)
+            zcr_score = min(zcr * 35, 1.0)  # Slightly reduced sensitivity
+            score_components.append(zcr_score * 0.13)  # Reduced weight
             
-            # 4. MFCC patterns (laughter has distinctive cepstral characteristics)
+            # 4. MFCC patterns (laughter has distinctive cepstral characteristics) - SLIGHTLY REDUCED
             if frame_idx < features['mfccs'].shape[1]:
                 mfcc_variance = np.var(features['mfccs'][:, frame_idx])
-                mfcc_score = min(mfcc_variance / 100, 1.0)  # Normalize
-                score_components.append(mfcc_score * 0.15)
+                mfcc_score = min(mfcc_variance / 110, 1.0)  # Slightly higher threshold
+                score_components.append(mfcc_score * 0.12)  # Reduced weight
             
             # 5. Spectral contrast (laughter vs speech distinction)
             if frame_idx < features['spectral_contrast'].shape[1]:

@@ -592,7 +592,21 @@ batch_processor = BatchWordProcessor()
 
 def process_text_batch(text: str) -> Dict:
     """Process text with batch word analysis"""
-    return batch_processor.process_phrase_batch(text)
+    print(f"\n🔍 BATCH PROCESSOR DEBUG - process_text_batch")
+    print(f"   Input text: '{text}'")
+    print(f"   Text length: {len(text) if text else 0}")
+    
+    result = batch_processor.process_phrase_batch(text)
+    
+    print(f"   📊 Batch processor result:")
+    print(f"      Word count: {result.get('word_count', 0)}")
+    print(f"      Analyzed words: {result.get('analyzed_words', 0)}")
+    print(f"      Word analysis length: {len(result.get('word_analysis', []))}")
+    print(f"      Coverage: {result.get('coverage', 0):.1%}")
+    print(f"      Primary emotion: {result.get('overall_emotion', 'unknown')}")
+    print(f"🔍 BATCH PROCESSOR DEBUG - process_text_batch COMPLETE")
+    
+    return result
 
 def get_batch_stats() -> Dict:
     """Get batch processor statistics"""

@@ -1,0 +1,41 @@
+{
+  "word_id": "1761002367_if_db7f3200",
+  "original_word": "if",
+  "clean_word": "if",
+  "word_index": 11,
+  "total_words": 19,
+  "full_text": "i'm testing if this program works or not we will see if it does it over amplifies laughing and",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpom_lxn5e.wav",
+  "timestamp": 1761002367,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "google",
+    "service_confidence": 0.97601599,
+    "estimated_confidence": 0.8136842105263158,
+    "final_confidence": 0.9110832782105264,
+    "audio_hash": "175c8a8ba5cfa15c8e0ad1dd387ebf26",
+    "all_results": [
+      {
+        "service": "whisper_local",
+        "text": "i'm testing if this program works or not. we will see if it does. it over-implifies laughing and it's good.",
+        "confidence": 0.95
+      },
+      {
+        "service": "google",
+        "text": "i'm testing if this program works or not we will see if it does it over amplifies laughing and",
+        "confidence": 0.97601599
+      }
+    ]
+  },
+  "estimated_position": "Word 12 of 19",
+  "context": {
+    "before": "will see",
+    "target": "if",
+    "after": "it does",
+    "full_context": "will see if it does"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

@@ -1,0 +1,36 @@
+{
+  "word_id": "1761002003_im_a8e05d43",
+  "original_word": "i'm",
+  "clean_word": "im",
+  "word_index": 13,
+  "total_words": 26,
+  "full_text": "right, no, it totally could happen. i'm not making it that i'm sorry. i'm testing my program right now and i have a lot of questions.",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpuoh8nsae.wav",
+  "timestamp": 1761002003,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "whisper_local",
+    "service_confidence": 0.95,
+    "estimated_confidence": 0.7707692307692309,
+    "final_confidence": 0.8783076923076923,
+    "audio_hash": "3206f49fbeff9a98b4bce56be7bfcc6e",
+    "all_results": [
+      {
+        "service": "whisper_local",
+        "text": "right, no, it totally could happen. i'm not making it that i'm sorry. i'm testing my program right now and i have a lot of questions.",
+        "confidence": 0.95
+      }
+    ]
+  },
+  "estimated_position": "Word 14 of 26",
+  "context": {
+    "before": "i'm sorry.",
+    "target": "i'm",
+    "after": "testing my",
+    "full_context": "i'm sorry. i'm testing my"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

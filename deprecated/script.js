@@ -1844,6 +1844,84 @@ class AudioRecorder {
         this.elements.statusMessage.classList.remove('visible');
     }
 
+    showRetryButton() {
+        // Create retry button if it doesn't exist
+        let retryBtn = document.getElementById('retryAudioBtn');
+        if (!retryBtn) {
+            retryBtn = document.createElement('button');
+            retryBtn.id = 'retryAudioBtn';
+            retryBtn.className = 'btn btn-secondary';
+            retryBtn.innerHTML = '🔄 Try Again with Max Sensitivity';
+            retryBtn.style.cssText = 'margin-left: 10px; background: #ff6b35; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;';
+            
+            // Add it after the emotion button
+            this.elements.emotionBtn.parentNode.insertBefore(retryBtn, this.elements.emotionBtn.nextSibling);
+            
+            retryBtn.addEventListener('click', async () => {
+                retryBtn.disabled = true;
+                retryBtn.textContent = '🔄 Retrying...';
+                
+                try {
+                    await this.retryAnalysisWithMaxSensitivity();
+                } catch (error) {
+                    console.error('Retry error:', error);
+                    this.showStatus('Retry failed: ' + error.message, 'error');
+                } finally {
+                    retryBtn.disabled = false;
+                    retryBtn.innerHTML = '🔄 Try Again with Max Sensitivity';
+                }
+            });
+        }
+        
+        retryBtn.style.display = 'inline-block';
+    }
+
+    async retryAnalysisWithMaxSensitivity() {
+        if (!this.audioBuffer) {
+            this.showStatus('No audio to retry', 'error');
+            return;
+        }
+
+        this.showStatus('Retrying with maximum sensitivity...', 'info');
+
+        try {
+            // Convert audio buffer to WAV blob
+            const wavBlob = await this.audioBufferToWav(this.audioBuffer);
+            
+            // Create form data for the API with retry flag
+            const formData = new FormData();
+            formData.append('audio', wavBlob, 'recording.wav');
+            formData.append('retry_mode', 'aggressive');
+
+            // Send to enhanced emotion analysis server with retry mode
+            const response = await fetch('http://localhost:5003/api/analyze-audio', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            console.log('Retry API Response:', result);
+            
+            if (result.success && result.result) {
+                console.log('Retry successful:', result.result);
+                this.displayEmotionResults(result.result);
+                this.showStatus('Retry successful! Analysis complete.', 'success');
+                
+                // Hide retry button on success
+                const retryBtn = document.getElementById('retryAudioBtn');
+                if (retryBtn) retryBtn.style.display = 'none';
+                
+            } else {
+                console.error('Retry failed:', result);
+                this.showStatus(`Retry failed: ${result.error || 'Audio may not contain recognizable speech'}`, 'error');
+            }
+
+        } catch (error) {
+            console.error('Retry error:', error);
+            this.showStatus(`Retry error: ${error.message}`, 'error');
+        }
+    }
+
     async analyzeEmotion() {
         if (!this.audioBuffer) {
             this.showStatus('No audio to analyze', 'error');
@@ -1868,10 +1946,6 @@ class AudioRecorder {
                 body: formData
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
             const result = await response.json();
             console.log('Full API Response:', result);
             
@@ -1891,7 +1965,19 @@ class AudioRecorder {
                 }
             } else {
                 console.error('API Error:', result);
-                this.showStatus(`Analysis failed: ${result.error || 'Unknown error'}`, 'error');
+                // Handle speech recognition failures with helpful messages
+                let errorMessage = result.error || 'Unknown error';
+                
+                if (errorMessage.includes('Speech recognition failed')) {
+                    errorMessage = 'Speech recognition failed. Try:\n• Speaking louder and closer to microphone\n• Recording in a quieter environment\n• Making sure microphone is working\n• Speaking more clearly and slowly';
+                }
+                
+                this.showStatus(`Analysis failed: ${errorMessage}`, 'error');
+                
+                // Show retry button for speech recognition failures
+                if (result.error && result.error.includes('Speech recognition failed')) {
+                    this.showRetryButton();
+                }
             }
 
         } catch (error) {
@@ -1964,6 +2050,8 @@ class AudioRecorder {
         this.createEmotionBars(analysis.emotions);
         
         // Display laughter analysis if available
+        console.log('DEBUG: Laughter analysis data:', result.laughter_analysis);
+        console.log('DEBUG: Laughter influence data:', analysis.laughter_influence);
         this.displayLaughterAnalysis(result.laughter_analysis, analysis.laughter_influence);
         
         // Display music analysis if available
@@ -1971,20 +2059,45 @@ class AudioRecorder {
     }
 
     displayLaughterAnalysis(laughterData, laughterInfluence) {
+        console.log('DEBUG: displayLaughterAnalysis called');
+        console.log('DEBUG: laughterData:', laughterData);
+        console.log('DEBUG: laughterInfluence:', laughterInfluence);
+        
         const laughterSection = document.getElementById('laughterAnalysis');
         const laughterSummary = document.getElementById('laughterSummary');
         const laughterTimeline = document.getElementById('laughterTimeline');
         const laughterInfluenceDiv = document.getElementById('laughterInfluence');
         
-        if (!laughterSection || !laughterData) {
+        if (!laughterSection) {
+            console.log('DEBUG: No laughter section found in DOM');
+            return;
+        }
+        
+        // Always show the laughter section to provide feedback
+        laughterSection.style.display = 'block';
+        
+        // Check if laughter detection had an error
+        if (laughterData && laughterData.error) {
+            console.log('DEBUG: Laughter detection error:', laughterData.error);
+            laughterSummary.innerHTML = `
+                <span style="color: #6c757d;">😐 Laughter detection: ${laughterData.error}</span>
+            `;
+            if (laughterTimeline) laughterTimeline.innerHTML = '';
+            if (laughterInfluenceDiv) laughterInfluenceDiv.style.display = 'none';
             return;
         }
         
         // Check if laughter was detected
-        const segments = laughterData.laughter_segments || [];
+        const segments = laughterData ? (laughterData.laughter_segments || []) : [];
+        console.log('DEBUG: Laughter segments:', segments);
         
         if (segments.length === 0) {
-            laughterSection.style.display = 'none';
+            console.log('DEBUG: No laughter segments found');
+            laughterSummary.innerHTML = `
+                <span style="color: #6c757d;">😐 No laughter detected in audio</span>
+            `;
+            if (laughterTimeline) laughterTimeline.innerHTML = '';
+            if (laughterInfluenceDiv) laughterInfluenceDiv.style.display = 'none';
             return;
         }
         
@@ -2549,6 +2662,7 @@ class AudioRecorder {
         }
         
         // Display filtered words in a collapsed, less prominent section
+        const filteredWords = wordAnalysis ? wordAnalysis.filter(w => w.confidence < 0.3) : [];
         if (filteredWords.length > 0) {
             const filteredHeader = document.createElement('div');
             filteredHeader.className = 'word-section-header';
@@ -2583,6 +2697,7 @@ class AudioRecorder {
         }
         
         // Display not found words
+        const notFoundWords = wordAnalysis ? wordAnalysis.filter(w => !w.found) : [];
         if (notFoundWords.length > 0) {
             notFoundWords.forEach(wordData => {
                 const wordSpan = document.createElement('span');

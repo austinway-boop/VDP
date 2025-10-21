@@ -1,0 +1,41 @@
+{
+  "word_id": "1761002336_im_a7707c5b",
+  "original_word": "i'm",
+  "clean_word": "im",
+  "word_index": 0,
+  "total_words": 10,
+  "full_text": "i'm testing this program's working. okay, i should work now.",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpmiveocgc.wav",
+  "timestamp": 1761002336,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "whisper_local",
+    "service_confidence": 0.95,
+    "estimated_confidence": 0.8600000000000001,
+    "final_confidence": 0.914,
+    "audio_hash": "148eab24e9bd372bb65befe037d1ba13",
+    "all_results": [
+      {
+        "service": "whisper_local",
+        "text": "i'm testing this program's working. okay, i should work now.",
+        "confidence": 0.95
+      },
+      {
+        "service": "google",
+        "text": "i'm testing if this program is working now",
+        "confidence": 0.78353751
+      }
+    ]
+  },
+  "estimated_position": "Word 1 of 10",
+  "context": {
+    "before": "",
+    "target": "i'm",
+    "after": "testing this",
+    "full_context": "i'm testing this"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

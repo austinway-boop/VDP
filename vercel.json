@@ -1,0 +1,72 @@
+{
+  "version": 2,
+  "name": "speech-emotion-api",
+  "description": "Advanced Speech Emotion Analysis API with AI-powered transcription and emotion detection",
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 300
+    },
+    "python/*.py": {
+      "runtime": "python3.9",
+      "maxDuration": 300
+    }
+  },
+  "builds": [
+    {
+      "src": "api/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "python/*.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/analyze-audio",
+      "dest": "/api/analyze-audio.js",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
+      "src": "/api/analyze-text",
+      "dest": "/api/analyze-text.js", 
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
+      "src": "/api/stats",
+      "dest": "/api/stats.js",
+      "methods": ["GET", "OPTIONS"]
+    }
+  ],
+  "env": {
+    "DEEPSEEK_API_KEY": "@deepseek_api_key",
+    "OPENAI_API_KEY": "@openai_api_key",
+    "BING_KEY": "@bing_speech_key",
+    "IBM_USERNAME": "@ibm_watson_username",
+    "IBM_PASSWORD": "@ibm_watson_password"
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ],
+  "regions": ["iad1"],
+  "github": {
+    "silent": true
+  }
+}

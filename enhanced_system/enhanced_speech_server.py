@@ -12,6 +12,13 @@ import time
 from pathlib import Path
 from enhanced_speech_analyzer import EnhancedSpeechAnalyzer
 
+# Add ffmpeg to PATH for Whisper
+current_dir = Path(__file__).parent.parent
+ffmpeg_path = current_dir / "ffmpeg"
+if ffmpeg_path.exists():
+    os.environ['PATH'] = str(ffmpeg_path.parent) + os.pathsep + os.environ.get('PATH', '')
+    print(f"🔧 Added ffmpeg to PATH for Whisper: {ffmpeg_path.parent}")
+
 app = Flask(__name__)
 CORS(app)
 
@@ -20,8 +27,18 @@ analyzer = EnhancedSpeechAnalyzer()
 
 @app.route('/')
 def index():
-    """Main interface - original UI that users prefer"""
+    """Original interface that users prefer"""
     return send_from_directory('../deprecated', 'index.html')
+
+@app.route('/script.js')
+def serve_script():
+    """Serve the deprecated script.js for backward compatibility"""
+    return send_from_directory('../deprecated', 'script.js')
+
+@app.route('/styles.css')
+def serve_styles():
+    """Serve the deprecated styles.css for backward compatibility"""
+    return send_from_directory('../deprecated', 'styles.css')
 
 @app.route('/api/analyze-audio', methods=['POST'])
 def analyze_audio():
@@ -34,6 +51,7 @@ def analyze_audio():
             }), 400
 
         audio_file = request.files['audio']
+        retry_mode = request.form.get('retry_mode', 'normal')  # Check for retry flag
         
         if audio_file.filename == '':
             return jsonify({
@@ -47,11 +65,51 @@ def analyze_audio():
             temp_path = temp_file.name
 
         try:
-            # Analyze with enhanced system
-            result = analyzer.analyze_audio_file_with_training(temp_path)
+            # If this is a retry request, try aggressive transcription first
+            if retry_mode == 'aggressive':
+                print(f"🔄 RETRY MODE: Attempting aggressive transcription first")
+                retry_text, retry_confidence, retry_metadata = analyzer.aggressive_retry_transcription(temp_path)
+                if retry_text and retry_text.strip():
+                    print(f"✅ AGGRESSIVE RETRY SUCCESS: '{retry_text}'")
+                    # Create a successful result with the retry transcription
+                    result = {
+                        "transcription": retry_text,
+                        "confidence": retry_confidence,
+                        "metadata": retry_metadata,
+                        "emotion_analysis": analyzer.analyze_phrase_emotion(retry_text),
+                        "laughter_analysis": {"error": "Not analyzed in retry mode"},
+                        "music_analysis": {"error": "Not analyzed in retry mode"},
+                        "processing_time": 0,
+                        "success": True,
+                        "error": None,
+                        "needs_review": retry_confidence < 0.7,
+                        "unknown_words": 0,
+                        "unknown_word_ids": []
+                    }
+                else:
+                    # Aggressive retry failed, fall back to normal analysis
+                    print(f"❌ AGGRESSIVE RETRY FAILED: Falling back to normal analysis")
+                    result = analyzer.analyze_audio_file_with_training(temp_path)
+            else:
+                # Normal analysis
+                result = analyzer.analyze_audio_file_with_training(temp_path)
             
             # Clean up temp file
             os.unlink(temp_path)
+            
+            # Check if analysis actually succeeded
+            analysis_success = result.get("success", False)
+            has_transcription = bool(result.get("transcription", "").strip())
+            has_error = bool(result.get("error"))
+            
+            if not analysis_success or has_error or not has_transcription:
+                # Analysis failed - return proper error response
+                error_msg = result.get("error", "Speech recognition failed")
+                return jsonify({
+                    "success": False,
+                    "error": error_msg,
+                    "details": result
+                }), 400
             
             return jsonify({
                 "success": True,

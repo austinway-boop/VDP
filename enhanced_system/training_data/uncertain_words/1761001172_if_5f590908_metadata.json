@@ -1,0 +1,41 @@
+{
+  "word_id": "1761001172_if_5f590908",
+  "original_word": "if",
+  "clean_word": "if",
+  "word_index": 25,
+  "total_words": 29,
+  "full_text": "we'll see if this program works. hopefully this program works. it's gonna be really exciting if it does. also laughing work now, but we'll see if that does work.",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpwj0p13is.wav",
+  "timestamp": 1761001172,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "whisper_local",
+    "service_confidence": 0.95,
+    "estimated_confidence": 0.8572413793103448,
+    "final_confidence": 0.9128965517241379,
+    "audio_hash": "b36a691d6f6993edfbd5f8a5d49a5d72",
+    "all_results": [
+      {
+        "service": "whisper_local",
+        "text": "we'll see if this program works. hopefully this program works. it's gonna be really exciting if it does. also laughing work now, but we'll see if that does work.",
+        "confidence": 0.95
+      },
+      {
+        "service": "google",
+        "text": "we'll see if this program works hopefully this program works it's going to be really exciting if it does work now but we'll see if that",
+        "confidence": 0.6774686
+      }
+    ]
+  },
+  "estimated_position": "Word 26 of 29",
+  "context": {
+    "before": "we'll see",
+    "target": "if",
+    "after": "that does",
+    "full_context": "we'll see if that does"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

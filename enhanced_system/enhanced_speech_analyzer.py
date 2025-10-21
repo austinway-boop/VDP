@@ -187,28 +187,45 @@ class EnhancedSpeechAnalyzer:
     def transcribe_audio_with_confidence(self, audio_file_path: str) -> Tuple[str, float, Dict]:
         """Convert audio file to text with confidence estimation"""
         try:
-            print(f"Attempting to transcribe: {audio_file_path}")
+            print(f"\n🔍 AUDIO TRANSCRIPTION DEBUG - START")
+            print(f"📁 File path: {audio_file_path}")
             
             # Check if file exists and has content
             if not os.path.exists(audio_file_path):
-                print(f"Audio file does not exist: {audio_file_path}")
+                print(f"❌ Audio file does not exist: {audio_file_path}")
                 return "", 0.0, {"error": "File not found"}
             
             file_size = os.path.getsize(audio_file_path)
-            print(f"Audio file size: {file_size} bytes")
+            print(f"📊 Audio file size: {file_size} bytes")
             
-            if file_size < 1000:  # Lowered threshold - very small files might still have speech
+            # Try to get more file info
+            try:
+                import stat
+                file_stats = os.stat(audio_file_path)
+                print(f"📊 File permissions: {stat.filemode(file_stats.st_mode)}")
+                print(f"📊 File modified: {file_stats.st_mtime}")
+            except Exception as e:
+                print(f"⚠️ Could not get file stats: {e}")
+            
+            if file_size < 500:  # Very small files
                 print(f"⚠️ Audio file quite small ({file_size} bytes) - may have recognition issues")
             
-            if file_size < 100:  # Only reject extremely small files
-                print("Audio file too small, likely empty")
-                return "", 0.0, {"error": "File too small"}
+            # Be more lenient with small files - web recordings can be small but valid
+            if file_size < 50:  # Only reject truly tiny files (less than basic WAV header)
+                print(f"❌ Audio file extremely small ({file_size} bytes), likely corrupted or empty")
+                return "", 0.0, {"error": "File too small or corrupted"}
+            
+            print(f"✅ File size acceptable ({file_size} bytes), proceeding with transcription")
             
             # Convert WebM to WAV if needed
+            print(f"🔄 Checking if audio conversion is needed...")
             converted_path = self.convert_audio_if_needed(audio_file_path)
             if converted_path != audio_file_path:
-                print(f"Converted audio format: {audio_file_path} → {converted_path}")
+                print(f"✅ Converted audio format: {audio_file_path} → {converted_path}")
+                print(f"📊 Converted file size: {os.path.getsize(converted_path)} bytes")
                 audio_file_path = converted_path
+            else:
+                print(f"✅ No conversion needed, using original file")
             
             # Calculate audio hash for deduplication
             audio_hash = self.calculate_audio_hash(audio_file_path)
@@ -219,45 +236,244 @@ class EnhancedSpeechAnalyzer:
                 print(f"Using custom vocabulary: '{corrected_text}'")
                 return corrected_text, 1.0, {"source": "custom_vocabulary", "audio_hash": audio_hash}
             
+            print(f"🎵 Opening audio file with SpeechRecognition...")
             with sr.AudioFile(audio_file_path) as source:
-                print(f"Audio file info - Duration: {source.DURATION}, Sample rate: {source.SAMPLE_RATE}")
+                print(f"📊 Audio file info - Duration: {source.DURATION}s, Sample rate: {source.SAMPLE_RATE}Hz")
+                print(f"📊 Audio channels: {getattr(source, 'CHANNELS', 'unknown')}")
+                print(f"📊 Audio sample width: {getattr(source, 'SAMPLE_WIDTH', 'unknown')} bytes")
                 
-                # Enhanced audio preprocessing for better recognition
-                if source.DURATION < 1.0:
-                    # Very short clips - minimal noise adjustment
-                    self.recognizer.adjust_for_ambient_noise(source, duration=0.1)
-                elif source.DURATION < 5.0:
-                    # Short clips - quick noise adjustment  
-                    self.recognizer.adjust_for_ambient_noise(source, duration=0.2)
-                else:
-                    # Longer clips - more thorough noise adjustment
-                    self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
+                # SKIP noise adjustment - it might be filtering out quiet speech
+                print(f"🔧 SKIPPING noise adjustment to preserve quiet speech")
                 
-                # Adjust recognizer settings for better accuracy
-                self.recognizer.energy_threshold = 200  # Even lower threshold for quiet speech
-                self.recognizer.dynamic_energy_threshold = True
-                self.recognizer.pause_threshold = 0.5  # Shorter pause detection for better capture
-                self.recognizer.phrase_threshold = 0.3  # Lower phrase threshold
-                self.recognizer.non_speaking_duration = 0.5  # Shorter non-speaking duration
+                # Adjust recognizer settings for better accuracy with web recordings
+                print(f"🔧 Configuring recognizer settings for web audio...")
+                self.recognizer.energy_threshold = 10   # EXTREMELY low threshold - force recognition
+                self.recognizer.dynamic_energy_threshold = False  # Disable dynamic adjustment
+                self.recognizer.pause_threshold = 0.3   # Shorter pause detection
+                self.recognizer.phrase_threshold = 0.1  # Minimum phrase threshold
+                self.recognizer.non_speaking_duration = 0.3  # Shorter non-speaking duration
+                
+                print(f"📊 Final recognizer settings:")
+                print(f"   • Energy threshold: {self.recognizer.energy_threshold}")
+                print(f"   • Dynamic energy: {self.recognizer.dynamic_energy_threshold}")
+                print(f"   • Pause threshold: {self.recognizer.pause_threshold}")
+                print(f"   • Phrase threshold: {self.recognizer.phrase_threshold}")
+                print(f"   • Non-speaking duration: {self.recognizer.non_speaking_duration}")
                 
                 # Record the audio
+                print(f"🎤 Recording audio data from source...")
                 audio_data = self.recognizer.record(source)
-                print(f"Audio data recorded, attempting recognition with enhanced settings...")
+                print(f"✅ Audio data recorded successfully")
+                
+                # Try to amplify quiet audio
+                try:
+                    import numpy as np
+                    raw_data = audio_data.get_raw_data()
+                    audio_array = np.frombuffer(raw_data, dtype=np.int16)
+                    audio_level = np.sqrt(np.mean(audio_array**2))
+                    
+                    if audio_level < 100:  # Very quiet audio
+                        print(f"🔊 AMPLIFYING quiet audio (level: {audio_level:.2f})")
+                        # Amplify by 3x but avoid clipping
+                        amplified = np.clip(audio_array * 3, -32767, 32767).astype(np.int16)
+                        amplified_raw = amplified.tobytes()
+                        
+                        # Create new AudioData with amplified audio
+                        audio_data = sr.AudioData(
+                            amplified_raw,
+                            audio_data.sample_rate,
+                            audio_data.sample_width
+                        )
+                        
+                        new_level = np.sqrt(np.mean(amplified**2))
+                        print(f"🔊 Amplified audio level: {audio_level:.2f} → {new_level:.2f}")
+                    
+                except Exception as e:
+                    print(f"⚠️ Could not amplify audio: {e}")
+                    print(f"   Proceeding with original audio")
+                
+                # Get raw audio data for analysis
+                try:
+                    raw_data = audio_data.get_raw_data()
+                    print(f"📊 Raw audio data length: {len(raw_data)} bytes")
+                    
+                    # Analyze audio content
+                    import numpy as np
+                    audio_array = np.frombuffer(raw_data, dtype=np.int16)
+                    audio_level = np.sqrt(np.mean(audio_array**2))
+                    max_amplitude = np.max(np.abs(audio_array))
+                    print(f"📊 Audio level (RMS): {audio_level:.2f}")
+                    print(f"📊 Max amplitude: {max_amplitude}")
+                    print(f"📊 Audio range: {np.min(audio_array)} to {np.max(audio_array)}")
+                    
+                    if audio_level < 10:
+                        print(f"❌ EXTREMELY LOW AUDIO LEVEL ({audio_level:.2f}) - will force recognition anyway")
+                        print(f"   🔧 FORCING Google to process this audio regardless")
+                    elif audio_level < 50:
+                        print(f"⚠️ VERY LOW AUDIO LEVEL ({audio_level:.2f}) - will try aggressive recognition")
+                        print(f"   🔧 FORCING recognition with maximum sensitivity")
+                    elif audio_level < 100:
+                        print(f"⚠️ LOW AUDIO LEVEL ({audio_level:.2f}) - may have recognition issues")
+                    elif audio_level > 10000:
+                        print(f"⚠️ VERY HIGH AUDIO LEVEL ({audio_level:.2f}) - may be clipping/distorted")
+                    else:
+                        print(f"✅ Good audio level ({audio_level:.2f})")
+                    
+                    # Force recognition even with very low levels
+                    print(f"🔧 FORCING recognition attempt regardless of audio level")
+                        
+                except Exception as e:
+                    print(f"⚠️ Could not analyze raw audio data: {e}")
+                
+                print(f"🚀 Starting recognition attempts...")
                 
                 transcription_results = []
                 
-                # Try multiple recognition services and collect results
+                # Try multiple alternative recognition engines
+                
+                # Try Whisper LOCAL FIRST (most reliable)
+                print(f"🔍 ATTEMPT 1: Whisper Local Recognition (OpenAI)")
                 try:
-                    # Google Speech Recognition with enhanced parameters
+                    import whisper
+                    import tempfile
+                    
+                    # Add ffmpeg to PATH
+                    current_dir = Path(__file__).parent.parent
+                    ffmpeg_path = current_dir / "ffmpeg"
+                    if ffmpeg_path.exists():
+                        os.environ['PATH'] = str(ffmpeg_path.parent) + os.pathsep + os.environ.get('PATH', '')
+                        print(f"   🔧 Added ffmpeg to PATH: {ffmpeg_path.parent}")
+                    
+                    # Save audio to temporary file for Whisper
+                    with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_audio:
+                        temp_audio.write(audio_data.get_wav_data())
+                        temp_audio_path = temp_audio.name
+                    
+                    print(f"   📊 Whisper input file: {temp_audio_path} ({os.path.getsize(temp_audio_path)} bytes)")
+                    
+                    # Use Whisper's tiny model for speed (it's still very good)
+                    print(f"   🤖 Loading Whisper tiny model...")
+                    model = whisper.load_model("tiny")
+                    print(f"   🎤 Transcribing with Whisper...")
+                    result = model.transcribe(temp_audio_path, language="en")
+                    whisper_text = result["text"].strip().lower()
+                    
+                    print(f"   📝 Whisper raw result: '{result['text']}'")
+                    print(f"   📝 Whisper processed: '{whisper_text}'")
+                    
+                    # Clean up temp file
+                    os.unlink(temp_audio_path)
+                    
+                    if whisper_text:
+                        transcription_results.append({
+                            "service": "whisper_local",
+                            "text": whisper_text,
+                            "confidence": 0.95
+                        })
+                        print(f"✅ Whisper LOCAL SUCCESS: '{whisper_text}'")
+                    else:
+                        print(f"❌ Whisper returned empty text")
+                        
+                except Exception as e:
+                    print(f"❌ Whisper local recognition failed: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    # Clean up temp file if it exists
+                    try:
+                        if 'temp_audio_path' in locals():
+                            os.unlink(temp_audio_path)
+                    except:
+                        pass
+                
+                # Try Bing/Azure Speech Recognition
+                print(f"🔍 ATTEMPT 2: Bing/Azure Speech Recognition")
+                try:
+                    bing_key = os.getenv('BING_KEY', 'DUMMY_KEY')  # You'd need to set this
+                    bing_text = self.recognizer.recognize_bing(audio_data, key=bing_key).lower()
+                    if bing_text and bing_text.strip():
+                        transcription_results.append({
+                            "service": "bing",
+                            "text": bing_text,
+                            "confidence": 0.9
+                        })
+                        print(f"✅ Bing recognition SUCCESS: '{bing_text}'")
+                except Exception as e:
+                    print(f"❌ Bing recognition failed: {e}")
+                
+                # Try IBM Watson
+                print(f"🔍 ATTEMPT 2: IBM Watson Recognition")
+                try:
+                    watson_username = os.getenv('IBM_USERNAME', 'DUMMY')
+                    watson_password = os.getenv('IBM_PASSWORD', 'DUMMY')
+                    watson_text = self.recognizer.recognize_ibm(
+                        audio_data, 
+                        username=watson_username, 
+                        password=watson_password
+                    ).lower()
+                    if watson_text and watson_text.strip():
+                        transcription_results.append({
+                            "service": "watson",
+                            "text": watson_text,
+                            "confidence": 0.85
+                        })
+                        print(f"✅ Watson recognition SUCCESS: '{watson_text}'")
+                except Exception as e:
+                    print(f"❌ Watson recognition failed: {e}")
+                
+                # Try Sphinx (local) if available
+                print(f"🔍 ATTEMPT 3: Sphinx Recognition (Local)")
+                try:
+                    sphinx_text = self.recognizer.recognize_sphinx(audio_data).lower()
+                    if sphinx_text and sphinx_text.strip():
+                        sphinx_confidence = 0.8  # Sphinx can be quite accurate
+                        transcription_results.append({
+                            "service": "sphinx",
+                            "text": sphinx_text, 
+                            "confidence": sphinx_confidence
+                        })
+                        print(f"✅ Sphinx recognition SUCCESS: '{sphinx_text}' (confidence: {sphinx_confidence:.3f})")
+                except Exception as e:
+                    print(f"❌ Sphinx recognition failed: {e}")
+                
+                # Try Whisper (OpenAI) if available
+                print(f"🔍 ATTEMPT 4: Whisper Recognition (OpenAI)")
+                try:
+                    openai_key = os.getenv('OPENAI_API_KEY', 'DUMMY_KEY')
+                    whisper_text = self.recognizer.recognize_whisper_api(audio_data, api_key=openai_key).lower()
+                    if whisper_text and whisper_text.strip():
+                        transcription_results.append({
+                            "service": "whisper",
+                            "text": whisper_text,
+                            "confidence": 0.95
+                        })
+                        print(f"✅ Whisper recognition SUCCESS: '{whisper_text}'")
+                except Exception as e:
+                    print(f"❌ Whisper recognition failed: {e}")
+                
+                # Try Google as LAST resort
+                print(f"🔍 ATTEMPT 3: Google Speech Recognition (as fallback)")
+                try:
+                    print(f"   📡 Calling Google API with show_all=True, with_confidence=True...")
                     text = self.recognizer.recognize_google(
                         audio_data, 
                         language='en-US', 
                         show_all=True,
                         with_confidence=True
                     )
+                    print(f"   📡 Google API response type: {type(text)}")
+                    print(f"   📡 Google API response: {text}")
+                    
                     if isinstance(text, dict) and 'alternative' in text:
                         # Google returns confidence scores in full response
-                        best_result = text['alternative'][0]
+                        alternatives = text['alternative']
+                        print(f"   📊 Google returned {len(alternatives)} alternatives")
+                        
+                        for i, alt in enumerate(alternatives[:3]):  # Show top 3
+                            transcript = alt.get('transcript', '')
+                            confidence = alt.get('confidence', 0.0)
+                            print(f"   📝 Alternative {i+1}: '{transcript}' (confidence: {confidence:.3f})")
+                        
+                        best_result = alternatives[0]
                         google_text = best_result.get('transcript', '').lower()
                         google_confidence = best_result.get('confidence', 0.5)
                         transcription_results.append({
@@ -265,7 +481,8 @@ class EnhancedSpeechAnalyzer:
                             "text": google_text,
                             "confidence": google_confidence
                         })
-                        print(f"Google recognition: '{google_text}' (confidence: {google_confidence:.2f})")
+                        print(f"   ✅ Google recognition SUCCESS: '{google_text}' (confidence: {google_confidence:.3f})")
+                        
                     elif isinstance(text, str):
                         google_text = text.lower()
                         google_confidence = 0.8  # Default confidence when not provided
@@ -274,10 +491,15 @@ class EnhancedSpeechAnalyzer:
                             "text": google_text,
                             "confidence": google_confidence
                         })
-                        print(f"Google recognition: '{google_text}' (default confidence: {google_confidence:.2f})")
+                        print(f"   ✅ Google recognition SUCCESS (simple): '{google_text}' (default confidence: {google_confidence:.3f})")
+                    else:
+                        print(f"   ❌ Google returned unexpected format: {type(text)}")
+                        print(f"   📄 Full response: {text}")
                         
-                except sr.UnknownValueError:
-                    print("Google couldn't understand audio - trying with different settings...")
+                except sr.UnknownValueError as e:
+                    print(f"   ❌ Google primary attempt FAILED: UnknownValueError - {e}")
+                    print(f"🔍 ATTEMPT 2: Google fallback attempts with different languages")
+                    
                     # Try again with different parameters and languages
                     fallback_attempts = [
                         {'language': 'en-US', 'name': 'US English'},
@@ -285,22 +507,34 @@ class EnhancedSpeechAnalyzer:
                         {'language': 'en', 'name': 'Generic English'},
                     ]
                     
-                    for attempt in fallback_attempts:
+                    for i, attempt in enumerate(fallback_attempts):
+                        print(f"   🔍 Fallback {i+1}: Trying Google with {attempt['name']} ({attempt['language']})")
                         try:
                             simple_text = self.recognizer.recognize_google(
                                 audio_data, 
                                 language=attempt['language']
                             )
+                            print(f"   📡 Google {attempt['name']} response: '{simple_text}'")
                             if simple_text and simple_text.strip():
                                 transcription_results.append({
                                     "service": f"google_{attempt['language']}",
                                     "text": simple_text.lower(),
                                     "confidence": 0.6
                                 })
-                                print(f"✅ Google {attempt['name']}: '{simple_text.lower()}'")
+                                print(f"   ✅ Google {attempt['name']} SUCCESS: '{simple_text.lower()}'")
                                 break
-                        except:
-                            print(f"❌ Google {attempt['name']} failed")
+                            else:
+                                print(f"   ⚠️ Google {attempt['name']} returned empty text")
+                        except sr.UnknownValueError as uve:
+                            print(f"   ❌ Google {attempt['name']} - no speech detected: {uve}")
+                        except sr.RequestError as re:
+                            print(f"   ❌ Google {attempt['name']} - request error: {re}")
+                        except Exception as ex:
+                            print(f"   ❌ Google {attempt['name']} - unexpected error: {ex}")
+                except sr.RequestError as e:
+                    print(f"   ❌ Google primary attempt FAILED: RequestError - {e}")
+                except Exception as e:
+                    print(f"   ❌ Google primary attempt FAILED: Unexpected error - {e}")
                     
                     if not transcription_results:
                         print("🔍 Google recognition completely failed - checking audio quality...")
@@ -369,12 +603,27 @@ class EnhancedSpeechAnalyzer:
                             print(f"🎯 Local model result: '{local_text}' (confidence: {local_confidence:.2f})")
                     
                     if not transcription_results:
-                        return "", 0.0, {"error": "All recognition services failed"}
+                        error_msg = "Speech recognition failed. Please try:\n"
+                        error_msg += "• Speaking louder and closer to the microphone\n"
+                        error_msg += "• Recording in a quieter environment\n"
+                        error_msg += "• Ensuring your microphone is working\n"
+                        error_msg += "• Speaking more clearly and slowly"
+                        return "", 0.0, {"error": error_msg, "detailed_error": "All recognition services failed"}
+                
+                print(f"\n📊 TRANSCRIPTION RESULTS SUMMARY:")
+                print(f"   Total results: {len(transcription_results)}")
+                for i, result in enumerate(transcription_results):
+                    print(f"   Result {i+1}: '{result['text']}' from {result['service']} (confidence: {result['confidence']:.3f})")
+                
+                if not transcription_results:
+                    print(f"   ❌ NO RESULTS - all recognition attempts failed")
+                    return "", 0.0, {"error": "All recognition services failed", "detailed_error": "All recognition services failed"}
                 
                 # Choose result with highest confidence
                 best_result = max(transcription_results, key=lambda x: x['confidence'])
                 final_text = best_result['text']
                 service_confidence = best_result['confidence']
+                print(f"   🏆 BEST RESULT: '{final_text}' from {best_result['service']} (confidence: {service_confidence:.3f})")
                 
                 # If confidence is low, try local model as additional option
                 if service_confidence < 0.6 and self.local_model and best_result['service'] != 'local_model':
@@ -406,6 +655,14 @@ class EnhancedSpeechAnalyzer:
                     "all_results": transcription_results
                 }
                 
+                print(f"\n✅ TRANSCRIPTION COMPLETE:")
+                print(f"   Final text: '{final_text}'")
+                print(f"   Service confidence: {service_confidence:.3f}")
+                print(f"   Estimated confidence: {estimated_confidence:.3f}")
+                print(f"   Final confidence: {final_confidence:.3f}")
+                print(f"   Source: {best_result['service']}")
+                print(f"🔍 AUDIO TRANSCRIPTION DEBUG - END\n")
+                
                 return final_text, final_confidence, metadata
                 
         except Exception as e:
@@ -413,6 +670,87 @@ class EnhancedSpeechAnalyzer:
             import traceback
             traceback.print_exc()
             return "", 0.0, {"error": str(e)}
+    
+    def aggressive_retry_transcription(self, audio_file_path: str) -> Tuple[str, float, Dict]:
+        """Aggressive retry with maximum sensitivity settings"""
+        try:
+            print(f"🔥 AGGRESSIVE RETRY - Maximum sensitivity mode")
+            
+            with sr.AudioFile(audio_file_path) as source:
+                # MAXIMUM SENSITIVITY SETTINGS
+                self.recognizer.energy_threshold = 10    # Extremely low
+                self.recognizer.dynamic_energy_threshold = False  # Disable dynamic adjustment
+                self.recognizer.pause_threshold = 2.0    # Very long pause detection
+                self.recognizer.phrase_threshold = 0.1   # Minimum phrase threshold
+                self.recognizer.non_speaking_duration = 2.0  # Very long non-speaking duration
+                
+                print(f"🔥 Aggressive settings:")
+                print(f"   • Energy threshold: {self.recognizer.energy_threshold}")
+                print(f"   • Dynamic energy: {self.recognizer.dynamic_energy_threshold}")
+                print(f"   • Pause threshold: {self.recognizer.pause_threshold}")
+                print(f"   • Phrase threshold: {self.recognizer.phrase_threshold}")
+                
+                # No noise adjustment - take everything
+                audio_data = self.recognizer.record(source)
+                
+                # Try multiple aggressive approaches
+                retry_attempts = [
+                    {'name': 'Google Aggressive US', 'lang': 'en-US', 'show_all': False},
+                    {'name': 'Google Aggressive UK', 'lang': 'en-GB', 'show_all': False},
+                    {'name': 'Google Aggressive Generic', 'lang': 'en', 'show_all': False},
+                    {'name': 'Google Detailed US', 'lang': 'en-US', 'show_all': True},
+                    {'name': 'Google Detailed Generic', 'lang': 'en', 'show_all': True},
+                ]
+                
+                for attempt in retry_attempts:
+                    try:
+                        print(f"   🔥 Trying {attempt['name']}...")
+                        
+                        if attempt['show_all']:
+                            result = self.recognizer.recognize_google(
+                                audio_data, 
+                                language=attempt['lang'],
+                                show_all=True
+                            )
+                            if isinstance(result, dict) and 'alternative' in result:
+                                alternatives = result['alternative']
+                                if alternatives:
+                                    best = alternatives[0]
+                                    text = best.get('transcript', '').strip()
+                                    confidence = best.get('confidence', 0.3)
+                                    if text:
+                                        print(f"   ✅ {attempt['name']} SUCCESS: '{text}'")
+                                        return text.lower(), confidence, {
+                                            'service': attempt['name'],
+                                            'confidence': confidence,
+                                            'source': 'aggressive_retry'
+                                        }
+                        else:
+                            text = self.recognizer.recognize_google(
+                                audio_data, 
+                                language=attempt['lang']
+                            )
+                            if text and text.strip():
+                                print(f"   ✅ {attempt['name']} SUCCESS: '{text}'")
+                                return text.lower().strip(), 0.4, {
+                                    'service': attempt['name'],
+                                    'confidence': 0.4,
+                                    'source': 'aggressive_retry'
+                                }
+                        
+                        print(f"   ❌ {attempt['name']} - no result")
+                        
+                    except sr.UnknownValueError:
+                        print(f"   ❌ {attempt['name']} - no speech detected")
+                    except Exception as e:
+                        print(f"   ❌ {attempt['name']} - error: {e}")
+                
+                print(f"🔥 All aggressive retries failed")
+                return "", 0.0, {"error": "All aggressive retry attempts failed"}
+                
+        except Exception as e:
+            print(f"🔥 Aggressive retry error: {e}")
+            return "", 0.0, {"error": f"Aggressive retry error: {str(e)}"}
     
     def convert_audio_if_needed(self, audio_file_path: str) -> str:
         """Convert audio file to WAV format if needed"""
@@ -677,28 +1015,56 @@ class EnhancedSpeechAnalyzer:
     
     def analyze_audio_file_with_training(self, audio_file_path: str) -> Dict:
         """Complete analysis pipeline with confidence-based training data collection"""
-        print(f"Analyzing audio file: {audio_file_path}")
+        print(f"\n🎯 FULL ANALYSIS PIPELINE DEBUG - START")
+        print(f"📁 Analyzing audio file: {audio_file_path}")
         
         # Step 1: Transcribe audio with confidence
-        print("Transcribing audio...")
+        print(f"\n📝 STEP 1: Audio Transcription")
         text, confidence, metadata = self.transcribe_audio_with_confidence(audio_file_path)
         
+        print(f"\n📊 TRANSCRIPTION RESULT:")
+        print(f"   Text: '{text}'")
+        print(f"   Text length: {len(text) if text else 0} characters")
+        print(f"   Confidence: {confidence:.3f}")
+        print(f"   Metadata: {metadata}")
+        
         if not text:
-            print("No speech detected or transcription failed")
+            print(f"\n❌ NO SPEECH DETECTED - Trying aggressive retry...")
+            
+            # AGGRESSIVE RETRY: Try with even more lenient settings
+            print(f"🔄 RETRY ATTEMPT: Trying with maximum sensitivity...")
+            retry_text, retry_confidence, retry_metadata = self.aggressive_retry_transcription(audio_file_path)
+            
+            if retry_text and retry_text.strip():
+                print(f"✅ RETRY SUCCESS: '{retry_text}' (confidence: {retry_confidence:.3f})")
+                text = retry_text
+                confidence = retry_confidence
+                metadata = retry_metadata
+            else:
+                print(f"❌ ALL RETRIES FAILED - Returning failure result")
+                print(f"   Reason: {metadata.get('error', 'Unknown error')}")
+                neutral_result = self.get_neutral_emotion_result("")
+                print(f"   Returning neutral emotion result with word_count: {neutral_result.get('word_count', 0)}")
             return {
                 "transcription": "",
                 "confidence": 0.0,
                 "metadata": metadata,
-                "emotion_analysis": self.get_neutral_emotion_result(""),
+                    "emotion_analysis": neutral_result,
                 "laughter_analysis": {"error": "No audio to analyze"},
                 "music_analysis": {"error": "No audio to analyze"},
                 "processing_time": 0,
                 "success": False,
-                "error": metadata.get("error", "Unknown error"),
+                    "error": metadata.get("error", "Speech recognition failed completely after all retries"),
                 "needs_review": False
             }
         
-        print(f"Transcribed text: '{text}' (confidence: {confidence:.2f})")
+        print(f"\n✅ TRANSCRIPTION SUCCESS: '{text}' (confidence: {confidence:.3f})")
+        
+        # Count words in transcription
+        words = text.split() if text else []
+        print(f"📊 Word count in transcription: {len(words)}")
+        if words:
+            print(f"📝 Words: {words}")
         
         # Step 2: Check if confidence is below threshold
         needs_review = confidence < self.confidence_threshold
@@ -708,8 +1074,8 @@ class EnhancedSpeechAnalyzer:
             print(f"⚠️ Low confidence ({confidence:.2f} < {self.confidence_threshold}), saving for review...")
             clip_id = self.save_uncertain_clip(audio_file_path, text, confidence, metadata)
         
-        # Step 3: Detect laughter first (affects emotion analysis)
-        print("Detecting laughter...")
+        # Step 3: Detect laughter with conservative settings (improved to avoid false positives)
+        print("Detecting laughter with conservative settings...")
         laughter_analysis = {}
         if LAUGHTER_DETECTION_AVAILABLE:
             try:
@@ -726,10 +1092,28 @@ class EnhancedSpeechAnalyzer:
             laughter_analysis = {'error': 'Laughter detection not available'}
         
         # Step 4: Analyze emotion (with laughter influence)
-        print("Analyzing emotions...")
+        print(f"\n🎭 STEP 4: Emotion Analysis")
+        print(f"   Input text for emotion analysis: '{text}'")
         start_time = time.time()
         emotion_analysis = self.analyze_phrase_emotion(text, laughter_analysis)
         processing_time = time.time() - start_time
+        
+        print(f"\n📊 EMOTION ANALYSIS RESULT:")
+        print(f"   Processing time: {processing_time:.3f}s")
+        print(f"   Word count: {emotion_analysis.get('word_count', 0)}")
+        print(f"   Analyzed words: {emotion_analysis.get('analyzed_words', 0)}")
+        print(f"   Coverage: {emotion_analysis.get('coverage', 0):.1%}")
+        print(f"   Word analysis length: {len(emotion_analysis.get('word_analysis', []))}")
+        print(f"   Primary emotion: {emotion_analysis.get('overall_emotion', 'unknown')}")
+        
+        # Show first few word analyses for debugging
+        word_analysis = emotion_analysis.get('word_analysis', [])
+        if word_analysis:
+            print(f"   First 3 word analyses:")
+            for i, word_data in enumerate(word_analysis[:3]):
+                print(f"     {i+1}. '{word_data.get('word', 'unknown')}' → {word_data.get('emotion', 'unknown')} (found: {word_data.get('found', False)})")
+        else:
+            print(f"   ❌ NO WORD ANALYSIS DATA!")
         
         # Step 5: Detect background music
         print("Detecting background music...")
@@ -778,13 +1162,28 @@ class EnhancedSpeechAnalyzer:
     
     def analyze_phrase_emotion(self, text: str, laughter_data: Dict = None) -> Dict:
         """Analyze emotion using batch word processing with laughter influence"""
-        print(f"🔍 Batch analysis of: '{text}'")
+        print(f"\n🔍 EMOTION ANALYSIS DEBUG - analyze_phrase_emotion")
+        print(f"   Input text: '{text}'")
+        print(f"   Text length: {len(text) if text else 0}")
+        print(f"   Laughter data present: {bool(laughter_data and laughter_data.get('laughter_segments'))}")
+        
+        print(f"   📡 Calling process_text_batch...")
         emotion_result = process_text_batch(text)
+        
+        print(f"   📊 Batch processing result:")
+        print(f"      Word count: {emotion_result.get('word_count', 0)}")
+        print(f"      Analyzed words: {emotion_result.get('analyzed_words', 0)}")
+        print(f"      Word analysis length: {len(emotion_result.get('word_analysis', []))}")
+        print(f"      Primary emotion: {emotion_result.get('overall_emotion', 'unknown')}")
         
         # Apply laughter influence to emotion scores
         if laughter_data and laughter_data.get('laughter_segments'):
+            print(f"   😄 Applying laughter influence...")
             emotion_result = self._apply_laughter_influence(emotion_result, laughter_data)
+        else:
+            print(f"   😐 No laughter influence to apply")
         
+        print(f"🔍 EMOTION ANALYSIS DEBUG - analyze_phrase_emotion COMPLETE")
         return emotion_result
     
     def _apply_laughter_influence(self, emotion_result: Dict, laughter_data: Dict) -> Dict:

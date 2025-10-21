@@ -1,0 +1,36 @@
+{
+  "word_id": "1761003016_im_053d552b",
+  "original_word": "i'm",
+  "clean_word": "im",
+  "word_index": 14,
+  "total_words": 21,
+  "full_text": "i'm so happy to see you again. i'm so happy to see you again. i'm so happy to see you again.",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpd5tsjv1_.wav",
+  "timestamp": 1761003016,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "whisper_local",
+    "service_confidence": 0.95,
+    "estimated_confidence": 0.882857142857143,
+    "final_confidence": 0.9231428571428572,
+    "audio_hash": "3b43b49b787318932ae4b1dd9397ac3f",
+    "all_results": [
+      {
+        "service": "whisper_local",
+        "text": "i'm so happy to see you again. i'm so happy to see you again. i'm so happy to see you again.",
+        "confidence": 0.95
+      }
+    ]
+  },
+  "estimated_position": "Word 15 of 21",
+  "context": {
+    "before": "you again.",
+    "target": "i'm",
+    "after": "so happy",
+    "full_context": "you again. i'm so happy"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

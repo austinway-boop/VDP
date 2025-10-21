@@ -1,0 +1,36 @@
+{
+  "word_id": "1760999968_if_d857d2f0",
+  "original_word": "if",
+  "clean_word": "if",
+  "word_index": 6,
+  "total_words": 10,
+  "full_text": "what's seeing if this works testing if this program works",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpdug9d5dx.wav",
+  "timestamp": 1760999968,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "google",
+    "service_confidence": 0.74495232,
+    "estimated_confidence": 0.8600000000000001,
+    "final_confidence": 0.7909713920000001,
+    "audio_hash": "e250cfe5247a29b7ee18d065e662ab6b",
+    "all_results": [
+      {
+        "service": "google",
+        "text": "what's seeing if this works testing if this program works",
+        "confidence": 0.74495232
+      }
+    ]
+  },
+  "estimated_position": "Word 7 of 10",
+  "context": {
+    "before": "works testing",
+    "target": "if",
+    "after": "this program",
+    "full_context": "works testing if this program"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}
