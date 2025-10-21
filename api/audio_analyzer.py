@@ -18,13 +18,15 @@ sys.path.insert(0, str(enhanced_dir))
 try:
     from enhanced_speech_analyzer import EnhancedSpeechAnalyzer
 except ImportError as e:
+    # Fallback for serverless environment - return basic response
     print(json.dumps({
         "success": False,
-        "error": f"Failed to import speech analyzer: {e}",
+        "error": "Speech analysis not available in serverless environment. Please use text analysis instead.",
         "transcription": "",
-        "confidence": 0.0
+        "confidence": 0.0,
+        "fallback": True
     }))
-    sys.exit(1)
+    sys.exit(0)  # Exit successfully with fallback message
 
 def main():
     parser = argparse.ArgumentParser(description='Analyze audio file for speech and emotions')
