@@ -1,7 +1,9 @@
+const { authenticate } = require('./auth-middleware');
+
 // Simple in-memory counter (resets on function restart)
 let audioCalls = 0;
 
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
   // Increment audio counter
   audioCalls++;
   
@@ -19,6 +21,17 @@ module.exports = (req, res) => {
       success: false,
       error: 'Method not allowed. Use POST to analyze audio.'
     });
+  }
+  
+  // Authenticate the request
+  const authResult = await new Promise((resolve) => {
+    authenticate(req, res, (err) => {
+      resolve(err || null);
+    });
+  });
+  
+  if (authResult) {
+    return; // Authentication failed, response already sent
   }
   
   try {

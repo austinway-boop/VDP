@@ -2,6 +2,7 @@
 // Returns information about the emotion analysis system
 
 const { emotionEngine } = require('./emotion-engine');
+const { authenticate } = require('./auth-middleware');
 
 // Helper function to get system stats from Python
 async function getSystemStats() {
@@ -61,7 +62,7 @@ module.exports = async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -72,6 +73,17 @@ module.exports = async function handler(req, res) {
       success: false,
       error: 'Method not allowed. Use GET to retrieve system statistics.'
     });
+  }
+  
+  // Authenticate the request
+  const authResult = await new Promise((resolve) => {
+    authenticate(req, res, (err) => {
+      resolve(err || null);
+    });
+  });
+  
+  if (authResult) {
+    return; // Authentication failed, response already sent
   }
   
   try {

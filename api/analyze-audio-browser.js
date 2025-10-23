@@ -1,10 +1,12 @@
 // Vercel Serverless Function for Audio Analysis
 // Uses browser-based speech recognition + emotion analysis
 
+const { authenticate } = require('./auth-middleware');
+
 // Simple in-memory counter
 let audioCalls = 0;
 
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
   // Increment counter
   audioCalls++;
   
@@ -22,6 +24,17 @@ module.exports = (req, res) => {
       success: false,
       error: 'Method not allowed. Use POST to analyze audio.'
     });
+  }
+  
+  // Authenticate the request
+  const authResult = await new Promise((resolve) => {
+    authenticate(req, res, (err) => {
+      resolve(err || null);
+    });
+  });
+  
+  if (authResult) {
+    return; // Authentication failed, response already sent
   }
   
   try {

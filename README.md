@@ -57,22 +57,32 @@ Transform speech and text into detailed emotional insights:
 
 ## 🔗 API Endpoints
 
+> **🔐 AUTHENTICATION REQUIRED**: All API endpoints now require authentication using API tokens. See [API Authentication Guide](./API_AUTH_README.md) for setup instructions.
+
 ### POST `/api/analyze-audio`
 Upload audio files for speech recognition and emotion analysis.
 
-**Input**: Audio file (multipart/form-data)
+**Input**: Audio file (multipart/form-data) + API token
 **Output**: Transcription + emotion analysis + laughter/music detection
 
 ### POST `/api/analyze-text`
 Analyze text directly for emotion detection and sentiment.
 
-**Input**: Text string (JSON)
+**Input**: Text string (JSON) + API token
 **Output**: Detailed emotion analysis with word-level breakdown
 
 ### GET `/api/stats`
 Get system statistics and capabilities.
 
+**Input**: API token
 **Output**: Database size, features, performance metrics
+
+### 🔑 Authentication
+All endpoints require an API token provided via:
+- Authorization header: `Authorization: Bearer your-token-here`
+- Query parameter: `?api_token=your-token-here`
+
+**Quick Setup**: `node scripts/manage-api-tokens.js generate "My App"`
 
 ## 🚀 Quick Deploy
 
@@ -89,6 +99,8 @@ Get system statistics and capabilities.
 **Required**:
 ```bash
 DEEPSEEK_API_KEY=sk-your-deepseek-key-here
+API_TOKEN_1=your-first-api-token-here
+API_TOKEN_2=your-second-api-token-here
 ```
 
 **Optional** (for enhanced accuracy):
@@ -99,15 +111,19 @@ IBM_USERNAME=apikey
 IBM_PASSWORD=your-ibm-watson-password
 ```
 
+**🔐 Generate API Tokens**: Use `node scripts/manage-api-tokens.js generate` to create secure tokens
+
 ### 3. Test Your Deployment
 
 ```bash
-# Test the API
-curl https://your-project.vercel.app/api/stats
+# Test the API (requires token)
+curl -H "Authorization: Bearer your-api-token-here" \
+  https://your-project.vercel.app/api/stats
 
-# Analyze text
+# Analyze text (with authentication)
 curl -X POST https://your-project.vercel.app/api/analyze-text \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-api-token-here" \
   -d '{"text": "I am so excited about this!"}'
 ```
 
@@ -201,6 +217,7 @@ curl -X POST https://your-project.vercel.app/api/analyze-audio \
 
 ## 📚 Documentation
 
+- **[API Authentication Guide](./API_AUTH_README.md)**: Complete authentication setup and token management
 - **[API Documentation](./API_DOCUMENTATION.md)**: Complete API reference with examples
 - **[Environment Variables](./ENVIRONMENT_VARIABLES.md)**: Detailed setup guide
 - **[Test Suite Documentation](./test/)**: Testing tools and examples
@@ -210,10 +227,13 @@ curl -X POST https://your-project.vercel.app/api/analyze-audio \
 ### JavaScript/Node.js
 
 ```javascript
-// Text analysis
+// Text analysis with authentication
 const response = await fetch('https://vdp-peach.vercel.app/api/analyze-text', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer your-api-token-here'
+  },
   body: JSON.stringify({ text: 'I am extremely happy today!' })
 });
 
@@ -221,12 +241,15 @@ const result = await response.json();
 console.log('Primary emotion:', result.result.emotion_analysis.overall_emotion);
 console.log('Confidence:', result.result.emotion_analysis.confidence);
 
-// Audio analysis
+// Audio analysis with authentication
 const formData = new FormData();
 formData.append('audio', audioFile);
 
 const audioResponse = await fetch('https://vdp-peach.vercel.app/api/analyze-audio', {
   method: 'POST',
+  headers: {
+    'Authorization': 'Bearer your-api-token-here'
+  },
   body: formData
 });
 
@@ -240,22 +263,26 @@ console.log('Emotion:', audioResult.result.emotion_analysis.overall_emotion);
 ```python
 import requests
 
-# Text analysis
+# Text analysis with authentication
+headers = {'Authorization': 'Bearer your-api-token-here'}
+
 response = requests.post(
     'https://vdp-peach.vercel.app/api/analyze-text',
-    json={'text': 'I feel amazing about this project!'}
+    json={'text': 'I feel amazing about this project!'},
+    headers=headers
 )
 
 result = response.json()
 print(f"Emotion: {result['result']['emotion_analysis']['overall_emotion']}")
 print(f"Confidence: {result['result']['emotion_analysis']['confidence']:.2%}")
 
-# Audio analysis
+# Audio analysis with authentication
 with open('recording.wav', 'rb') as audio_file:
     files = {'audio': audio_file}
     response = requests.post(
         'https://vdp-peach.vercel.app/api/analyze-audio',
-        files=files
+        files=files,
+        headers=headers
     )
 
 result = response.json()
@@ -265,16 +292,19 @@ print(f"Transcription: {result['result']['transcription']}")
 ### cURL
 
 ```bash
-# Test the live API right now!
-curl https://vdp-peach.vercel.app/api/stats
+# Test the live API (with authentication)
+curl -H "Authorization: Bearer your-api-token-here" \
+  https://vdp-peach.vercel.app/api/stats
 
-# Analyze text
+# Analyze text (with authentication)
 curl -X POST https://vdp-peach.vercel.app/api/analyze-text \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-api-token-here" \
   -d '{"text": "This is absolutely wonderful news!"}'
 
-# Analyze audio
+# Analyze audio (with authentication)
 curl -X POST https://vdp-peach.vercel.app/api/analyze-audio \
+  -H "Authorization: Bearer your-api-token-here" \
   -F "audio=@recording.wav" \
   -F "retry_mode=normal"
 ```

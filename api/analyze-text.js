@@ -2,6 +2,7 @@
 // Uses REAL emotion analysis with word database + DeepSeek API
 
 const { emotionEngine } = require('./emotion-engine');
+const { authenticate } = require('./auth-middleware');
 
 // Simple in-memory counter (resets on function restart)
 let textAnalysisCalls = 0;
@@ -16,7 +17,7 @@ module.exports = async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -27,6 +28,17 @@ module.exports = async function handler(req, res) {
       success: false,
       error: 'Method not allowed. Use POST to analyze text.'
     });
+  }
+  
+  // Authenticate the request
+  const authResult = await new Promise((resolve) => {
+    authenticate(req, res, (err) => {
+      resolve(err || null);
+    });
+  });
+  
+  if (authResult) {
+    return; // Authentication failed, response already sent
   }
   
   try {
