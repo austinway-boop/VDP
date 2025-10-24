@@ -67,14 +67,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎤 Speech Emotion Analysis API</h1>
-        <p class="subtitle">Advanced AI-powered speech recognition and emotion analysis</p>
+        <h1>Speech Emotion Analysis API</h1>
+        <p class="subtitle">Advanced speech recognition and emotion analysis system</p>
         
-        <div class="status">✅ API Active with Authentication 🔐</div>
-        <div id="api-stats" style="margin: 1rem 0; padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; color: white; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
-            <strong>📊 Live API Call Counter:</strong>
+        <div class="status">API Online</div>
+        <div id="api-stats" style="margin: 1rem 0; padding: 1rem; background: #2563eb; border-radius: 6px; color: white;">
+            <strong>API Usage Statistics</strong>
             <div id="stats-content" style="margin-top: 0.5rem;">Loading...</div>
-            <button onclick="refreshStats()" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; font-weight: 500;">🔄 Refresh Stats</button>
+            <button onclick="refreshStats()" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: #1d4ed8; color: white; border: none; border-radius: 4px; cursor: pointer;">Refresh</button>
         </div>
         
         <h2>Available Endpoints</h2>
@@ -96,13 +96,13 @@
             <p><strong>Body:</strong> Form data with <code>audio</code> file field</p>
         </div>
         
-        <h2>Quick Test</h2>
+        <h2>API Testing</h2>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1rem 0;">
-            <button onclick="testTextAPI()" style="padding: 0.75rem; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;">
-                🎭 Test Text Analysis
+            <button onclick="testTextAPI()" style="padding: 0.75rem; background: #059669; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">
+                Test Text Analysis
             </button>
-            <button onclick="testAudioAPI()" style="padding: 0.75rem; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;">
-                🎤 Test Audio Endpoint
+            <button onclick="testAudioAPI()" style="padding: 0.75rem; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">
+                Test Audio Endpoint
             </button>
         </div>
         
@@ -120,16 +120,16 @@ curl -X POST <span id="base-url-2">https://your-project.vercel.app</span>/api/an
         </div>
         
         <h2>Documentation</h2>
-        <p>📖 <a href="https://github.com/austinway-boop/VDP/blob/main/API_DOCUMENTATION.md" target="_blank">Complete API Documentation</a></p>
-        <p>🔧 <a href="https://github.com/austinway-boop/VDP/blob/main/ENVIRONMENT_VARIABLES.md" target="_blank">Environment Setup Guide</a></p>
+        <p><a href="https://github.com/austinway-boop/VDP/blob/main/API_DOCUMENTATION.md" target="_blank">Complete API Documentation</a></p>
+        <p><a href="https://github.com/austinway-boop/VDP/blob/main/ENVIRONMENT_VARIABLES.md" target="_blank">Environment Setup Guide</a></p>
         
         <h2>Features</h2>
         <ul>
-            <li>🎭 8-category emotion detection</li>
-            <li>🎤 Multi-engine speech recognition</li>
-            <li>😄 Laughter detection and analysis</li>
-            <li>📊 Word-level emotion breakdown</li>
-            <li>⚡ Real-time processing</li>
+            <li>8-category emotion detection</li>
+            <li>Multi-engine speech recognition</li>
+            <li>Laughter detection and analysis</li>
+            <li>Word-level emotion breakdown</li>
+            <li>Real-time processing</li>
         </ul>
     </div>
     
@@ -161,24 +161,24 @@ curl -X POST <span id="base-url-2">https://your-project.vercel.app</span>/api/an
                     const calls = result.stats.api_calls;
                     document.getElementById('stats-content').innerHTML = `
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 0.5rem; font-size: 1.1em;">
-                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px;">
-                                <div style="font-size: 1.5em; font-weight: bold;">${calls.total_calls.toLocaleString()}</div>
-                                <div style="font-size: 0.9em; opacity: 0.9;">Total API Calls</div>
+                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.15); border-radius: 4px;">
+                                <div style="font-size: 1.8em; font-weight: bold;">${calls.total_calls.toLocaleString()}</div>
+                                <div style="font-size: 0.9em; opacity: 0.9;">Total Requests</div>
                             </div>
-                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px;">
-                                <div style="font-size: 1.2em; font-weight: bold;">${calls.text_analysis_calls}</div>
+                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.15); border-radius: 4px;">
+                                <div style="font-size: 1.4em; font-weight: bold;">${calls.text_analysis_calls}</div>
                                 <div style="font-size: 0.9em; opacity: 0.9;">Text Analysis</div>
                             </div>
                         </div>
-                        <div style="margin-top: 0.75rem; text-align: center; font-size: 0.9em; opacity: 0.8;">
-                            🕒 Updated: ${new Date(result.stats.api_info.timestamp).toLocaleTimeString()} | 
-                            📊 Database: ${result.stats.word_database_size.toLocaleString()} words
+                        <div style="margin-top: 0.75rem; text-align: center; font-size: 0.85em; opacity: 0.8;">
+                            Last updated: ${new Date(result.stats.api_info.timestamp).toLocaleTimeString()} | 
+                            Database: ${result.stats.word_database_size.toLocaleString()} words
                         </div>
                     `;
                 } else {
                     document.getElementById('stats-content').innerHTML = `
                         <div style="text-align: center; padding: 1rem;">
-                            ⚠️ Stats format unexpected<br>
+                            Stats format unexpected<br>
                             <small>Response: ${JSON.stringify(result).substring(0, 100)}...</small>
                         </div>
                     `;
@@ -187,9 +187,9 @@ curl -X POST <span id="base-url-2">https://your-project.vercel.app</span>/api/an
                 console.error('Stats loading error:', error);
                 document.getElementById('stats-content').innerHTML = `
                     <div style="text-align: center; padding: 1rem;">
-                        ❌ Error loading stats<br>
+                        Error loading stats<br>
                         <small>${error.message}</small><br>
-                        <button onclick="loadAPIStats()" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.3); color: white; border: 1px solid rgba(255,255,255,0.5); border-radius: 4px; cursor: pointer;">🔄 Retry</button>
+                        <button onclick="loadAPIStats()" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.3); color: white; border: 1px solid rgba(255,255,255,0.5); border-radius: 4px; cursor: pointer;">Retry</button>
                     </div>
                 `;
             }
@@ -212,10 +212,10 @@ curl -X POST <span id="base-url-2">https://your-project.vercel.app</span>/api/an
                     body: JSON.stringify({ text: 'I am extremely excited and happy about this test!' })
                 });
                 const result = await response.json();
-                alert(`✅ Text Analysis Result:\nEmotion: ${result.result?.emotion_analysis?.overall_emotion}\nConfidence: ${(result.result?.emotion_analysis?.confidence * 100).toFixed(1)}%\n\n🎯 API call successful! Check the counter above.`);
+                alert(`Text Analysis Result:\nEmotion: ${result.result?.emotion_analysis?.overall_emotion}\nConfidence: ${(result.result?.emotion_analysis?.confidence * 100).toFixed(1)}%\n\nAPI call successful! Check the counter above.`);
                 refreshStats();
             } catch (error) {
-                alert(`❌ Error: ${error.message}`);
+                alert(`Error: ${error.message}`);
             }
         }
         
@@ -228,10 +228,10 @@ curl -X POST <span id="base-url-2">https://your-project.vercel.app</span>/api/an
                     }
                 });
                 const result = await response.json();
-                alert(`🎤 Audio API Response:\n${result.message || result.error}\n\n📞 Calls this session: ${result.api_calls?.audio_calls || 'unknown'}\n\n🎯 API call successful! Check the counter above.`);
+                alert(`Audio API Response:\n${result.message || result.error}\n\nCalls this session: ${result.api_calls?.audio_calls || 'unknown'}\n\nAPI call successful! Check the counter above.`);
                 refreshStats();
             } catch (error) {
-                alert(`❌ Error: ${error.message}`);
+                alert(`Error: ${error.message}`);
             }
         }
         
@@ -240,6 +240,9 @@ curl -X POST <span id="base-url-2">https://your-project.vercel.app</span>/api/an
         
         // Auto-refresh every 30 seconds
         setInterval(loadAPIStats, 30000);
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', loadAPIStats);
     </script>
 </body>
 </html>
