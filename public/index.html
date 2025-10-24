@@ -71,10 +71,10 @@
         <p class="subtitle">Advanced speech recognition and emotion analysis system</p>
         
         <div class="status">API Online</div>
-        <div id="api-stats" style="margin: 1rem 0; padding: 1rem; background: #2563eb; border-radius: 6px; color: white;">
+        <div id="api-stats" style="margin: 1rem 0; padding: 1rem; background: #374151; border-radius: 6px; color: white; border: 1px solid #4b5563;">
             <strong>API Usage Statistics</strong>
             <div id="stats-content" style="margin-top: 0.5rem;">Loading...</div>
-            <button onclick="refreshStats()" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: #1d4ed8; color: white; border: none; border-radius: 4px; cursor: pointer;">Refresh</button>
+            <button onclick="refreshStats()" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: #1f2937; color: white; border: 1px solid #374151; border-radius: 4px; cursor: pointer;">Refresh</button>
         </div>
         
         <h2>Available Endpoints</h2>
@@ -161,11 +161,11 @@ curl -X POST <span id="base-url-2">https://your-project.vercel.app</span>/api/an
                     const calls = result.stats.api_calls;
                     document.getElementById('stats-content').innerHTML = `
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 0.5rem; font-size: 1.1em;">
-                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.15); border-radius: 4px;">
+                            <div style="text-align: center; padding: 0.5rem; background: #4b5563; border-radius: 4px; border: 1px solid #6b7280;">
                                 <div style="font-size: 1.8em; font-weight: bold;">${calls.total_calls.toLocaleString()}</div>
                                 <div style="font-size: 0.9em; opacity: 0.9;">Total Requests</div>
                             </div>
-                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.15); border-radius: 4px;">
+                            <div style="text-align: center; padding: 0.5rem; background: #4b5563; border-radius: 4px; border: 1px solid #6b7280;">
                                 <div style="font-size: 1.4em; font-weight: bold;">${calls.text_analysis_calls}</div>
                                 <div style="font-size: 0.9em; opacity: 0.9;">Text Analysis</div>
                             </div>
@@ -189,7 +189,7 @@ curl -X POST <span id="base-url-2">https://your-project.vercel.app</span>/api/an
                     <div style="text-align: center; padding: 1rem;">
                         Error loading stats<br>
                         <small>${error.message}</small><br>
-                        <button onclick="loadAPIStats()" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.3); color: white; border: 1px solid rgba(255,255,255,0.5); border-radius: 4px; cursor: pointer;">Retry</button>
+                        <button onclick="loadAPIStats()" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: #1f2937; color: white; border: 1px solid #374151; border-radius: 4px; cursor: pointer;">Retry</button>
                     </div>
                 `;
             }
