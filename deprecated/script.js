@@ -30,6 +30,8 @@ class AudioRecorder {
         this.speechEvents = [];
         this.wordCount = 0;
         this.recordingStartTime = 0;
+        this.apiCallCount = 0;
+        this.lastApiUpdate = 0;
         
         this.elements = {
             recordBtn: document.getElementById('recordBtn'),
@@ -49,6 +51,8 @@ class AudioRecorder {
             scrubber: document.getElementById('scrubber'),
             speechAnalysis: document.getElementById('speechAnalysis'),
             speechBoxes: document.getElementById('speechBoxes'),
+            apiCallCount: document.getElementById('apiCallCount'),
+            apiStatus: document.getElementById('apiStatus'),
             speakingPercentage: document.getElementById('speakingPercentage'),
             arousalInfo: document.getElementById('arousalInfo'),
             arousalBarFill: document.getElementById('arousalBarFill'),
@@ -83,6 +87,7 @@ class AudioRecorder {
     init() {
         this.setupCanvas();
         this.setupArousalCanvas();
+        this.initApiCounter();
         this.setupMetricCanvases();
         this.bindEvents();
         window.addEventListener('resize', () => {
@@ -123,6 +128,57 @@ class AudioRecorder {
             canvasHeight: this.arousalCanvas.height,
             dpr: dpr
         });
+    }
+
+    // API Counter Methods
+    initApiCounter() {
+        this.updateApiCounter();
+        // Update counter every 30 seconds
+        setInterval(() => this.updateApiCounter(), 30000);
+    }
+
+    async updateApiCounter() {
+        try {
+            // Try to get stats from the remote API
+            const response = await fetch('https://vdp-peach.vercel.app/api/stats', {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer 3a9a704ebb4540ee1f948caa7fc801b33db26de4631d3bb2b5073ce2b6cb7cea'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const apiCalls = data.stats.api_calls;
+                const totalCalls = apiCalls.total_calls || 0;
+                
+                this.elements.apiCallCount.textContent = totalCalls.toLocaleString();
+                this.elements.apiStatus.textContent = '✅ Connected to Remote API';
+                
+                // Add pulse animation when count increases
+                if (totalCalls > this.lastApiUpdate) {
+                    this.elements.apiCallCount.parentElement.parentElement.classList.add('pulse');
+                    setTimeout(() => {
+                        this.elements.apiCallCount.parentElement.parentElement.classList.remove('pulse');
+                    }, 600);
+                }
+                this.lastApiUpdate = totalCalls;
+            } else {
+                this.elements.apiStatus.textContent = '❌ Auth Required';
+            }
+        } catch (error) {
+            this.elements.apiCallCount.textContent = 'Offline';
+            this.elements.apiStatus.textContent = '🔌 Local Mode Only';
+        }
+    }
+
+    incrementLocalCounter() {
+        this.apiCallCount++;
+        this.elements.apiCallCount.textContent = `${this.apiCallCount} (local)`;
+        this.elements.apiCallCount.parentElement.parentElement.classList.add('pulse');
+        setTimeout(() => {
+            this.elements.apiCallCount.parentElement.parentElement.classList.remove('pulse');
+        }, 600);
     }
 
     setupMetricCanvases() {
@@ -1889,7 +1945,7 @@ class AudioRecorder {
             this.showStatus('🧠 Analyzing emotions in your text...', 'info');
             
             // Call the working text analysis API
-            const response = await fetch('https://vdp-peach.vercel.app/api/analyze-text', {
+            const response = await fetch('/api/analyze-text', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1899,6 +1955,9 @@ class AudioRecorder {
             
             const result = await response.json();
             console.log('✅ Text Analysis Result:', result);
+            
+            // Increment local API counter
+            this.incrementLocalCounter();
             
             if (result.success && result.result) {
                 // Display the real emotion analysis results!
@@ -1946,7 +2005,7 @@ class AudioRecorder {
                 
                 try {
                     // Send transcribed text to emotion analysis API
-                    const response = await fetch('https://vdp-peach.vercel.app/api/analyze-text', {
+                    const response = await fetch('/api/analyze-text', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1956,6 +2015,9 @@ class AudioRecorder {
                     
                     const result = await response.json();
                     console.log('✅ Emotion Analysis Result:', result);
+                    
+                    // Increment local API counter
+                    this.incrementLocalCounter();
                     
                     if (result.success && result.result) {
                         // Add speech recognition info to the result
@@ -2046,7 +2108,7 @@ class AudioRecorder {
             formData.append('retry_mode', 'aggressive');
 
             // Send to enhanced emotion analysis server with retry mode
-            const response = await fetch('https://vdp-peach.vercel.app/api/analyze-audio', {
+            const response = await fetch('/api/analyze-audio', {
                 method: 'POST',
                 body: formData
             });
@@ -2093,7 +2155,7 @@ class AudioRecorder {
             formData.append('audio', wavBlob, 'recording.wav');
 
             // Send to live Vercel API
-            const response = await fetch('https://vdp-peach.vercel.app/api/analyze-audio', {
+            const response = await fetch('/api/analyze-audio', {
                 method: 'POST',
                 body: formData
             });

@@ -70,11 +70,11 @@
         <h1>🎤 Speech Emotion Analysis API</h1>
         <p class="subtitle">Advanced AI-powered speech recognition and emotion analysis</p>
         
-        <div class="status">✅ API Active</div>
-        <div id="api-stats" style="margin: 1rem 0; padding: 1rem; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #28a745;">
-            <strong>📊 Live API Stats:</strong>
-            <div id="stats-content">Loading...</div>
-            <button onclick="refreshStats()" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Refresh</button>
+        <div class="status">✅ API Active with Authentication 🔐</div>
+        <div id="api-stats" style="margin: 1rem 0; padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; color: white; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+            <strong>📊 Live API Call Counter:</strong>
+            <div id="stats-content" style="margin-top: 0.5rem;">Loading...</div>
+            <button onclick="refreshStats()" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; font-weight: 500;">🔄 Refresh Stats</button>
         </div>
         
         <h2>Available Endpoints</h2>
@@ -106,8 +106,18 @@
             </button>
         </div>
         
-        <p>Or try the stats endpoint:</p>
-        <div class="example">curl <span id="base-url">https://your-project.vercel.app</span>/api/stats</div>
+        <p>Or test from terminal (any computer):</p>
+        <div class="example">
+# Quick stats check
+curl -H "Authorization: Bearer 3a9a704ebb4540ee1f948caa7fc801b33db26de4631d3bb2b5073ce2b6cb7cea" \
+  <span id="base-url">https://your-project.vercel.app</span>/api/stats
+
+# Text analysis (watch counter go up!)
+curl -X POST <span id="base-url-2">https://your-project.vercel.app</span>/api/analyze-text \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer 3a9a704ebb4540ee1f948caa7fc801b33db26de4631d3bb2b5073ce2b6cb7cea" \
+  -d '{"text": "I am feeling amazing!"}'
+        </div>
         
         <h2>Documentation</h2>
         <p>📖 <a href="https://github.com/austinway-boop/VDP/blob/main/API_DOCUMENTATION.md" target="_blank">Complete API Documentation</a></p>
@@ -126,31 +136,62 @@
     <script>
         // Update the base URL dynamically
         document.getElementById('base-url').textContent = window.location.origin;
+        document.getElementById('base-url-2').textContent = window.location.origin;
+        
+        // API Token for authentication
+        const API_TOKEN = '3a9a704ebb4540ee1f948caa7fc801b33db26de4631d3bb2b5073ce2b6cb7cea';
         
         // Load API stats on page load
         async function loadAPIStats() {
             try {
-                const response = await fetch('/api/stats');
+                const response = await fetch('/api/stats', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${API_TOKEN}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const result = await response.json();
                 
                 if (result.success && result.stats.api_calls) {
                     const calls = result.stats.api_calls;
                     document.getElementById('stats-content').innerHTML = `
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
-                            <div><strong>Total Calls:</strong> ${calls.total_calls}</div>
-                            <div><strong>Stats:</strong> ${calls.stats_calls}</div>
-                            <div><strong>Text Analysis:</strong> ${calls.text_analysis_calls}</div>
-                            <div><strong>Audio Calls:</strong> ${calls.audio_analysis_calls}</div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 0.5rem; font-size: 1.1em;">
+                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px;">
+                                <div style="font-size: 1.5em; font-weight: bold;">${calls.total_calls.toLocaleString()}</div>
+                                <div style="font-size: 0.9em; opacity: 0.9;">Total API Calls</div>
+                            </div>
+                            <div style="text-align: center; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 4px;">
+                                <div style="font-size: 1.2em; font-weight: bold;">${calls.text_analysis_calls}</div>
+                                <div style="font-size: 0.9em; opacity: 0.9;">Text Analysis</div>
+                            </div>
                         </div>
-                        <div style="margin-top: 0.5rem; font-size: 0.9em; color: #666;">
-                            Last updated: ${new Date(result.stats.api_info.timestamp).toLocaleTimeString()}
+                        <div style="margin-top: 0.75rem; text-align: center; font-size: 0.9em; opacity: 0.8;">
+                            🕒 Updated: ${new Date(result.stats.api_info.timestamp).toLocaleTimeString()} | 
+                            📊 Database: ${result.stats.word_database_size.toLocaleString()} words
                         </div>
                     `;
                 } else {
-                    document.getElementById('stats-content').innerHTML = 'Stats unavailable';
+                    document.getElementById('stats-content').innerHTML = `
+                        <div style="text-align: center; padding: 1rem;">
+                            ⚠️ Stats format unexpected<br>
+                            <small>Response: ${JSON.stringify(result).substring(0, 100)}...</small>
+                        </div>
+                    `;
                 }
             } catch (error) {
-                document.getElementById('stats-content').innerHTML = `Error loading stats: ${error.message}`;
+                console.error('Stats loading error:', error);
+                document.getElementById('stats-content').innerHTML = `
+                    <div style="text-align: center; padding: 1rem;">
+                        ❌ Error loading stats<br>
+                        <small>${error.message}</small><br>
+                        <button onclick="loadAPIStats()" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.3); color: white; border: 1px solid rgba(255,255,255,0.5); border-radius: 4px; cursor: pointer;">🔄 Retry</button>
+                    </div>
+                `;
             }
         }
         
@@ -164,27 +205,33 @@
             try {
                 const response = await fetch('/api/analyze-text', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_TOKEN}`
+                    },
                     body: JSON.stringify({ text: 'I am extremely excited and happy about this test!' })
                 });
                 const result = await response.json();
-                alert(`Text Analysis Result:\nEmotion: ${result.result?.emotion_analysis?.overall_emotion}\nConfidence: ${(result.result?.emotion_analysis?.confidence * 100).toFixed(1)}%`);
+                alert(`✅ Text Analysis Result:\nEmotion: ${result.result?.emotion_analysis?.overall_emotion}\nConfidence: ${(result.result?.emotion_analysis?.confidence * 100).toFixed(1)}%\n\n🎯 API call successful! Check the counter above.`);
                 refreshStats();
             } catch (error) {
-                alert(`Error: ${error.message}`);
+                alert(`❌ Error: ${error.message}`);
             }
         }
         
         async function testAudioAPI() {
             try {
                 const response = await fetch('/api/analyze-audio', {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${API_TOKEN}`
+                    }
                 });
                 const result = await response.json();
-                alert(`Audio API Response:\n${result.message}\n\nCalls this session: ${result.api_calls?.audio_calls || 'unknown'}`);
+                alert(`🎤 Audio API Response:\n${result.message || result.error}\n\n📞 Calls this session: ${result.api_calls?.audio_calls || 'unknown'}\n\n🎯 API call successful! Check the counter above.`);
                 refreshStats();
             } catch (error) {
-                alert(`Error: ${error.message}`);
+                alert(`❌ Error: ${error.message}`);
             }
         }
         

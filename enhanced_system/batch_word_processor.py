@@ -407,7 +407,7 @@ Rules:
             else:
                 # No confident words found - return neutral
                 print("🚫 No confident words found - returning neutral analysis")
-                emotions = {emotion: 0.125 for emotion in emotion_weights}
+                emotions = {"joy": 0.125, "trust": 0.125, "anticipation": 0.125, "surprise": 0.125, "anger": 0.125, "fear": 0.125, "sadness": 0.125, "disgust": 0.125}
                 dominant_emotion = "neutral"
                 confidence = 0.125
             

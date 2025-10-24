@@ -1,0 +1,13 @@
+{
+  "tokens": [
+    {
+      "id": 1,
+      "hash": "552ddd80c81037896fe4ecd649762b95ff0b18285450fc53832f485f51a5beca",
+      "description": "User API Token",
+      "created": "2025-10-23T19:57:34.686Z",
+      "active": true,
+      "last_used": null
+    }
+  ],
+  "created": "2025-10-23T19:57:34.680Z"
+}

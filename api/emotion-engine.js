@@ -17,7 +17,10 @@ class EmotionEngine {
         try {
             // Load all word JSON files
             const wordsDir = path.join(process.cwd(), 'words');
+            console.log(`📂 Looking for words in directory: ${wordsDir}`);
+            
             const files = fs.readdirSync(wordsDir).filter(f => f.endsWith('.json'));
+            console.log(`📄 Found ${files.length} JSON files: ${files.join(', ')}`);
             
             let totalWords = 0;
             
@@ -27,22 +30,35 @@ class EmotionEngine {
                     const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
                     
                     if (data.words && Array.isArray(data.words)) {
+                        let fileWordCount = 0;
                         for (const wordEntry of data.words) {
                             if (wordEntry.word && wordEntry.stats) {
                                 this.wordCache.set(wordEntry.word.toLowerCase(), wordEntry.stats);
                                 totalWords++;
+                                fileWordCount++;
                             }
                         }
+                        console.log(`📝 ${file}: loaded ${fileWordCount} words`);
+                    } else {
+                        console.log(`⚠️  ${file}: no 'words' array found`);
                     }
                 } catch (fileError) {
-                    console.error(`Error loading ${file}:`, fileError.message);
+                    console.error(`❌ Error loading ${file}:`, fileError.message);
                 }
             }
             
-            console.log(`✅ Loaded emotion data for ${totalWords} words`);
+            console.log(`✅ Loaded emotion data for ${totalWords} words total`);
+            
+            // Test a few key words
+            const testWords = ['i', 'am', 'amazing', 'happy', 'sad'];
+            for (const word of testWords) {
+                const found = this.wordCache.has(word);
+                console.log(`🔍 Test word "${word}": ${found ? '✅ FOUND' : '❌ NOT FOUND'}`);
+            }
             
         } catch (error) {
             console.error('❌ Error loading word database:', error.message);
+            console.error('❌ Stack trace:', error.stack);
             // Continue with empty database - will use DeepSeek for all words
         }
     }
@@ -116,9 +132,13 @@ class EmotionEngine {
         
         // Process unknown words with DeepSeek if we have an API key
         if (unknownWords.length > 0 && this.deepseekApiKey) {
-            console.log(`🤖 Processing ${unknownWords.length} unknown words with DeepSeek...`);
+            // Prioritize emotionally significant words for DeepSeek processing
+            const emotionalWords = unknownWords.filter(word => this.isEmotionallySignificant(word.clean_word));
+            const wordsToProcess = emotionalWords.length > 0 ? emotionalWords : unknownWords.slice(0, 1);
             
-            for (const unknownWord of unknownWords.slice(0, 5)) { // Limit to 5 to avoid timeout
+            console.log(`🤖 Processing ${wordsToProcess.length} unknown words with DeepSeek (${emotionalWords.length} emotional, ${unknownWords.length - emotionalWords.length} neutral)...`);
+            
+            for (const unknownWord of wordsToProcess.slice(0, 3)) { // Process up to 3 words
                 try {
                     const deepseekResult = await this.analyzeWordWithDeepSeek(unknownWord.clean_word);
                     if (deepseekResult) {
@@ -139,12 +159,17 @@ class EmotionEngine {
                             };
                             
                             console.log(`🤖 DeepSeek analyzed "${unknownWord.clean_word}": ${dominantEmotion.emotion} (${(dominantEmotion.confidence * 100).toFixed(1)}%)`);
+                            
+                            // Cache this result for future use
+                            this.wordCache.set(unknownWord.clean_word, deepseekResult);
                         }
                     }
                 } catch (deepseekError) {
                     console.error(`❌ DeepSeek failed for "${unknownWord.clean_word}":`, deepseekError.message);
                 }
             }
+        } else if (unknownWords.length > 0) {
+            console.log(`⚡ Skipping DeepSeek for ${unknownWords.length} unknown words for speed - using neutral fallback`);
         }
         
         // Calculate overall emotion from word analyses (like original system)
@@ -163,6 +188,55 @@ class EmotionEngine {
         }
         
         return { emotion: maxEmotion, confidence: maxConfidence };
+    }
+    
+    isEmotionallySignificant(word) {
+        // Skip common neutral words that are unlikely to be emotional
+        const neutralWords = new Set([
+            'i', 'me', 'my', 'mine', 'myself',
+            'you', 'your', 'yours', 'yourself',
+            'he', 'she', 'it', 'his', 'her', 'its', 'him', 'himself', 'herself', 'itself',
+            'we', 'us', 'our', 'ours', 'ourselves',
+            'they', 'them', 'their', 'theirs', 'themselves',
+            'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+            'have', 'has', 'had', 'having',
+            'do', 'does', 'did', 'doing',
+            'will', 'would', 'shall', 'should', 'may', 'might', 'can', 'could',
+            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
+            'this', 'that', 'these', 'those',
+            'what', 'where', 'when', 'why', 'how', 'who', 'which',
+            'some', 'any', 'all', 'every', 'each', 'many', 'much', 'few', 'little',
+            'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
+            'first', 'second', 'third', 'last', 'next', 'previous',
+            'here', 'there', 'now', 'then', 'today', 'yesterday', 'tomorrow',
+            'up', 'down', 'left', 'right', 'over', 'under', 'above', 'below',
+            'get', 'got', 'getting', 'go', 'going', 'went', 'gone',
+            'come', 'coming', 'came', 'take', 'taking', 'took', 'taken',
+            'make', 'making', 'made', 'give', 'giving', 'gave', 'given',
+            'see', 'seeing', 'saw', 'seen', 'look', 'looking', 'looked',
+            'know', 'knowing', 'knew', 'known', 'think', 'thinking', 'thought',
+            'say', 'saying', 'said', 'tell', 'telling', 'told',
+            'find', 'finding', 'found', 'work', 'working', 'worked',
+            'use', 'using', 'used', 'try', 'trying', 'tried'
+        ]);
+        
+        // Skip if it's a common neutral word
+        if (neutralWords.has(word.toLowerCase())) {
+            return false;
+        }
+        
+        // Skip very short words (likely not emotionally significant)
+        if (word.length < 3) {
+            return false;
+        }
+        
+        // Skip numbers
+        if (/^\d+$/.test(word)) {
+            return false;
+        }
+        
+        // Process words that are likely to be emotionally significant
+        return true;
     }
     
     async analyzeWordWithDeepSeek(word) {

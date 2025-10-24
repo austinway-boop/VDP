@@ -91,8 +91,16 @@ def analyze_audio():
                     print(f"❌ AGGRESSIVE RETRY FAILED: Falling back to normal analysis")
                     result = analyzer.analyze_audio_file_with_training(temp_path)
             else:
-                # Normal analysis
-                result = analyzer.analyze_audio_file_with_training(temp_path)
+                # Normal analysis with error handling
+                try:
+                    result = analyzer.analyze_audio_file_with_training(temp_path)
+                except Exception as analysis_error:
+                    print(f"❌ Audio analysis failed: {analysis_error}")
+                    return jsonify({
+                        "success": False,
+                        "error": f"Audio analysis failed: {str(analysis_error)}",
+                        "details": {"error_type": type(analysis_error).__name__}
+                    }), 500
             
             # Clean up temp file
             os.unlink(temp_path)

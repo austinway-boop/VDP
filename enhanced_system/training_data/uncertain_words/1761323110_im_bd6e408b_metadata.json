@@ -1,0 +1,41 @@
+{
+  "word_id": "1761323110_im_bd6e408b",
+  "original_word": "i'm",
+  "clean_word": "im",
+  "word_index": 22,
+  "total_words": 27,
+  "full_text": "haha, this is so funny, i'm so happy right now, i'm in your bitch. oh, i said the funny reason, other than i'm desperate, i brought you.",
+  "original_audio_path": "/var/folders/24/k8bxg8392nb3j49y1nr70npw0000gp/T/tmpm9srmvkt.wav",
+  "timestamp": 1761323110,
+  "status": "pending_word_review",
+  "audio_metadata": {
+    "service": "whisper_local",
+    "service_confidence": 0.95,
+    "estimated_confidence": 0.737037037037037,
+    "final_confidence": 0.8648148148148147,
+    "audio_hash": "cc9c47497888d2debee90d75b39c1308",
+    "all_results": [
+      {
+        "service": "whisper_local",
+        "text": "haha, this is so funny, i'm so happy right now, i'm in your bitch. oh, i said the funny reason, other than i'm desperate, i brought you.",
+        "confidence": 0.95
+      },
+      {
+        "service": "google",
+        "text": "hahaha this is so funny i'm so happy right now emma you're a bitch i said that for no reason",
+        "confidence": 0.73725176
+      }
+    ]
+  },
+  "estimated_position": "Word 23 of 27",
+  "context": {
+    "before": "other than",
+    "target": "i'm",
+    "after": "desperate, i",
+    "full_context": "other than i'm desperate, i"
+  },
+  "uncertainty_reasons": [
+    "very_short"
+  ],
+  "detection_type": "speech_recognition_uncertainty"
+}

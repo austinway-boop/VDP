@@ -9,7 +9,7 @@ tests/
 start.py
 
 # Ignore training data and large files
-words/
+# words/ - REMOVED: needed for emotion analysis database
 ffmpeg
 
 # Ignore development and temporary files
